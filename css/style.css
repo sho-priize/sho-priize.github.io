@@ -475,3 +475,8 @@ html:not(.dev) #ph .ph-label { display: none; }
 /* 선택지 위 고정 문구 (노란 자막 스타일) */
 .c-head.sub-style { align-self: center; text-align: center; margin-bottom: 6px; font: 700 17px/1.5 var(--sans); color: #ffe14d;
   -webkit-text-stroke: .1em rgba(0,0,0,.75); paint-order: stroke fill; text-shadow: 0 0 .3em rgba(0,0,0,.9), 0 0 .8em rgba(0,0,0,.65); }
+
+/* 두 줄 자막: 내 말(흰색) + 아래 줄 속마음(노란색) */
+#sub .l { display: block; }
+#sub .l.think { color: #ffe14d; -webkit-text-stroke: .1em rgba(0,0,0,.75);
+  text-shadow: 0 0 .3em rgba(0,0,0,.9), 0 0 .8em rgba(0,0,0,.65), 0 .08em .2em rgba(0,0,0,.8); animation: thinkIn .4s ease both; }

@@ -56,9 +56,18 @@
   let currentId = null;
   let gate = null;           // 지금 장면의 영상이 재생 시작되면 풀리는 약속
   const defaultSub = (t, cls = '') => {
+    if (sub.dataset.multi) { delete sub.dataset.multi; sub.textContent = ''; }
     if (sub.textContent !== t) sub.textContent = t;
     sub.classList.toggle('think', cls === 'think' || cls === 'idle');
     sub.classList.toggle('idle', cls === 'idle');
+  };
+  // 자막 두 줄 동시에 (예: 내 말 + 아래 줄에 속마음)
+  const multiSub = (list) => {
+    const key = list.map((e) => e[2] + '|' + (e[3] || '')).join('\n');
+    if (sub.dataset.multi === key) return;
+    sub.dataset.multi = key;
+    sub.classList.remove('think', 'idle');
+    sub.innerHTML = list.map((e) => `<span class="l${e[3] === 'think' ? ' think' : ''}">${esc(e[2])}</span>`).join('');
   };
   let subOut = defaultSub;   // 자막 출력 위치 (영상통화 중에는 폰 안 캡션)
 
@@ -375,8 +384,10 @@
       const t = P.time();
       if (mode === 'play' || (mode === 'choice' && !ch.prompt)) {
         const e = currentSub(sc.subs, t);
+        const all = (sc.subs || []).filter((x) => t >= x[0] && t < x[1]);
         // 대사가 없는 동안엔 idleSub(예: '멤버들의 말을 들어보자...')를 계속 띄움
-        if (e) subOut(e[2], e[3]);
+        if (all.length > 1 && subOut === defaultSub) multiSub(all);
+        else if (e) subOut(e[2], e[3]);
         else if (sc.idleSub && mode === 'play') subOut(sc.idleSub, 'idle');
         else subOut('');
       }
