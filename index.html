@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>SHO-PRIIZE!</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/phone.css">
+</head>
+<body>
+
+<main id="stage" data-type="title">
+  <!-- 클립 배경: 같은 영상을 흐리게 크게 -->
+  <canvas id="clip-bg" width="32" height="18"></canvas>
+  <video id="video" playsinline webkit-playsinline preload="auto" hidden></video>
+  <div id="ph" hidden><div class="ph-bg"></div><div class="ph-label"></div></div>
+  <div id="tapzone"></div>
+  <div id="scrub" hidden><div class="sb-track"><i class="sb-fill"></i></div><span class="sb-time"></span></div>
+  <div id="pause-ind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg><span>일시정지됨 · 탭하면 계속</span></div>
+
+  <!-- 영상통화 / 문자 장면: 폰 화면이 그대로 전체 화면 -->
+  <div id="pstage" hidden>
+    <div id="side-info"></div>
+    <div id="phone">
+      <div class="bezel">
+        <div class="screen">
+          <div id="pscreen"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HUD -->
+  <div id="chapter" class="hud"></div>
+  <div id="logo" class="hud"></div>
+  <div id="tools" class="hud">
+    <button id="btn-mute" aria-label="소리 끄기/켜기">
+      <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/><path class="x" d="M16 9l6 6M22 9l-6 6"/></svg>
+    </button>
+    <button id="btn-fs" aria-label="전체화면">
+      <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+    </button>
+  </div>
+
+  <div id="sub"></div>
+  <div id="choices"></div>
+  <div id="hint" hidden></div>
+
+  <section id="narr" hidden></section>
+  <section id="ending" hidden></section>
+  <section id="title"></section>
+  <section id="route" hidden></section>
+  <button id="tap-play" hidden>▶ 터치하여 재생</button>
+  <div id="fade" class="on"></div>
+</main>
+
+<script src="js/story.js"></script>
+<script src="js/engine.js"></script>
+</body>
+</html>
