@@ -466,14 +466,14 @@ window.STORY = {
     },
 
     c_eunseok2: {
-      type: 'clip', src: null, duration: 5, label: 'eunseok2',   // TODO: media/clips/eunseok2.mp4
+      type: 'clip', src: 'media/clips/eunseok2.mp4',
       next: 'p_eunseok2',
     },
 
     n_eunseok4: { type: 'narration', lines: ['이제 은석이에게 맡겨보자...'], next: 'c_eunseok4' },
-    c_eunseok4: { type: 'clip', src: null, duration: 5, label: 'eunseok4', next: 'n_bad1' },   // TODO: media/clips/eunseok4.mp4
+    c_eunseok4: { type: 'clip', src: 'media/clips/eunseok4.mp4', next: 'n_bad1' },
     n_eunseok5: { type: 'narration', lines: ['이제 은석이에게 맡겨보자...'], next: 'c_eunseok5' },
-    c_eunseok5: { type: 'clip', src: null, duration: 5, label: 'eunseok5', next: 'n_bad1' },   // TODO: media/clips/eunseok5.mp4
+    c_eunseok5: { type: 'clip', src: 'media/clips/eunseok5.mp4', next: 'n_bad1' },
 
     n_bad1: {
       type: 'narration',
@@ -486,7 +486,7 @@ window.STORY = {
     },
 
     // 엔딩 들어가기 전에 보여주는 영상
-    c_e_bad1: { type: 'clip', src: null, duration: 5, label: 'e_bad1', next: 'e_bad1' },   // TODO: media/clips/e_bad1.mp4
+    c_e_bad1: { type: 'clip', src: 'media/clips/e_bad1.mp4', next: 'e_bad1' },
 
     e_bad1: {
       type: 'ending',
@@ -495,8 +495,7 @@ window.STORY = {
       bg: ['#4a2a1a', '#0c0806'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
-        src: null,   // TODO: e_bad1 영상의 소리 0:03.19~끝 → media/voices/e_bad1.m4a
-        duration: 3,
+        src: 'media/voices/e_bad1.m4a',   // e_bad1 영상의 소리 0:03.19~끝
         subs: [[0, 99, '깔깔깔']],
       },
     },
