@@ -421,9 +421,9 @@ window.STORY = {
           voice: null,   // TODO: media/voices/eunseok1.m4a (파일 받으면 연결)
           dur: 6,
           subs: [
-            [0, 1.5, '그래요~', 'think'],
-            [1.5, 3.8, '의뢰를 받았으면~', 'think'],
-            [3.8, 99, '의뢰를 해야 하는 게 인지상정이죠?', 'think'],
+            [0, 1.5, '그래요~'],
+            [1.5, 3.8, '의뢰를 받았으면~'],
+            [3.8, 99, '의뢰를 해야 하는 게 인지상정이죠?'],
           ],
         }],
       ],
@@ -482,14 +482,16 @@ window.STORY = {
         '무리한 발언으로 멤버들의 기세가 떨어져',
         '쇼타로의 깜짝파티 준비에 차질이 생겼다.',
       ],
-      next: 'e_bad1',
+      next: 'c_e_bad1',
     },
+
+    // 엔딩 들어가기 전에 보여주는 영상
+    c_e_bad1: { type: 'clip', src: null, duration: 5, label: 'e_bad1', next: 'e_bad1' },   // TODO: media/clips/e_bad1.mp4
 
     e_bad1: {
       type: 'ending',
       title: '준비 실패',
       desc: '그래도 쇼타로는 즐거웠을지도?',
-      src: null,   // TODO: media/clips/e_bad1.mp4 — 엔딩 화면에서 재생
       bg: ['#4a2a1a', '#0c0806'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
