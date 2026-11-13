@@ -418,7 +418,7 @@ window.STORY = {
       title: '은석', icon: '은',
       msgs: [
         ['은석', {
-          voice: null,   // TODO: media/voices/eunseok1.m4a (파일 받으면 연결)
+          voice: 'media/voices/eunseok1.m4a',   // eunseok1 영상에서 소리만 뽑음
           dur: 6,
           subs: [
             [0, 1.5, '그래요~'],
