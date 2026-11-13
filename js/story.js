@@ -391,9 +391,112 @@ window.STORY = {
       subs: [
         [1.5, 3, '생일파티 준비 같이 하자.'],
         [4, 99, '널 믿기로 했어.'],
-        [5, 99, '얼마나 감동받았는지 감도 안 온다', 'think'],   // 아래 줄에 함께
       ],
-      next: 'n_tbd',   // ← 다음 흐름 미정
+      next: 'n_eunseok1',
+    },
+
+    /* ── 은석 갈래 ── */
+    n_eunseok1: {
+      type: 'narration',
+      route: { title: '은석에게 뭘 의뢰할까' },
+      lines: [
+        '얼마나 감동받았는지 감도 안 온다.',
+        '쇼타로를 감동시킬 계획이 필요한데...',
+        '그렇게 의뢰해볼까?',
+      ],
+      choice: {
+        options: [
+          { text: '쇼타로를 감동시키자고 한다', next: 'p_eunseok1' },
+          { text: '뭐가 자신 있는지 물어본다', next: 'c_eunseok2' },
+        ],
+      },
+    },
+
+    // 은석 개인 문자: 음성 메시지 → (재생 버튼 눌러 듣기) → 대화
+    p_eunseok1: {
+      type: 'chat', thread: 'eunseok',
+      title: '은석', icon: '은',
+      msgs: [
+        ['은석', {
+          voice: null,   // TODO: media/voices/eunseok1.m4a (파일 받으면 연결)
+          dur: 6,
+          subs: [
+            [0, 1.5, '그래요~', 'think'],
+            [1.5, 3.8, '의뢰를 받았으면~', 'think'],
+            [3.8, 99, '의뢰를 해야 하는 게 인지상정이죠?', 'think'],
+          ],
+        }],
+      ],
+      choice: { options: [{ text: '어떻게 할 건데?', next: 'p_eunseok2' }] },
+    },
+
+    // (eunseok2 클립에서도 여기로 바로 들어옴)
+    p_eunseok2: {
+      type: 'chat', thread: 'eunseok',
+      title: '은석', icon: '은',
+      msgs: [
+        ['은석', '쇼타로는 감동스러운 말 좋아해'],
+        ['은석', '일단 밑밥 깔게'],
+      ],
+      choice: { options: [{ text: '의심 받을 것 같다고 한다', reply: '의심 받을 것 같은데...', next: 'p_eunseok3' }] },
+    },
+    p_eunseok3: {
+      type: 'chat', thread: 'eunseok',
+      title: '은석', icon: '은',
+      msgs: [
+        ['은석', '아 부정적인 생각'],
+        ['은석', '내쫓애'],
+      ],
+      choice: { options: [{ text: '알겠어', reply: '알겠어...', next: 'p_eunseok4' }] },
+    },
+    p_eunseok4: {
+      type: 'chat', thread: 'eunseok',
+      title: '은석', icon: '은',
+      route: { title: '고마워? 사랑해?' },
+      msgs: [
+        ['은석', '아 마지막 고민'],
+        ['은석', '고마워 사랑해 중에 뭐라고 하지?'],
+      ],
+      choice: {
+        options: [
+          { text: '고마워 추천', reply: false, next: 'n_eunseok4' },
+          { text: '사랑해 추천', reply: false, next: 'n_eunseok5' },
+        ],
+      },
+    },
+
+    c_eunseok2: {
+      type: 'clip', src: null, duration: 5, label: 'eunseok2',   // TODO: media/clips/eunseok2.mp4
+      next: 'p_eunseok2',
+    },
+
+    n_eunseok4: { type: 'narration', lines: ['이제 은석이에게 맡겨보자...'], next: 'c_eunseok4' },
+    c_eunseok4: { type: 'clip', src: null, duration: 5, label: 'eunseok4', next: 'n_bad1' },   // TODO: media/clips/eunseok4.mp4
+    n_eunseok5: { type: 'narration', lines: ['이제 은석이에게 맡겨보자...'], next: 'c_eunseok5' },
+    c_eunseok5: { type: 'clip', src: null, duration: 5, label: 'eunseok5', next: 'n_bad1' },   // TODO: media/clips/eunseok5.mp4
+
+    n_bad1: {
+      type: 'narration',
+      lines: [
+        '역효과가 발생했다.',
+        '무리한 발언으로 멤버들의 기세가 떨어져',
+        '쇼타로의 깜짝파티 준비에 차질이 생겼다.',
+      ],
+      next: 'e_bad1',
+    },
+
+    e_bad1: {
+      type: 'ending',
+      title: '준비 실패',
+      desc: '그래도 쇼타로는 즐거웠을지도?',
+      src: null,   // TODO: media/clips/e_bad1.mp4 — 엔딩 화면에서 재생
+      bg: ['#4a2a1a', '#0c0806'],
+      voice: {
+        name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
+        src: null,   // TODO: e_bad1 영상의 소리 0:03.19~끝 → media/voices/e_bad1.m4a
+        duration: 3,
+        subs: [[0, 99, '깔깔깔']],
+      },
     },
 
     ...memberCall('성찬', '이', 'sungchan'),

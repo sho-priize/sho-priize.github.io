@@ -696,6 +696,12 @@
       el.className = `bub ${who === 'me' ? 'me' : 'them'}${anim ? ' pop' : ''}`;
       const showName = sc.group && who !== 'me' && who !== prev;
       if (showName) el.classList.add('named');
+      if (text && typeof text === 'object' && 'voice' in text) {   // 음성 메시지
+        el.classList.add('vm');
+        const bars = Array.from({ length: 26 }, (_, k) => `<i style="--h:${(.25 + .75 * Math.abs(Math.sin(k * 1.7) * Math.cos(k * .55 + 1))).toFixed(2)}"></i>`).join('');
+        el.innerHTML = `${showName ? `<small>${esc(who)}</small>` : ''}<span><button class="vm-play" aria-label="재생"><i></i></button><b class="vm-wave">${bars}</b><em class="vm-dur">0:${pad2(Math.round(text.dur || 0))}</em></span>`;
+        return el;
+      }
       if (text && typeof text === 'object' && text.img) {   // 사진 메시지
         el.classList.add('pic');
         el.innerHTML = `${showName ? `<small>${esc(who)}</small>` : ''}<span><img src="${text.img}" alt=""></span>`;
@@ -705,6 +711,32 @@
       el.lastChild.textContent = text;
       return el;
     };
+
+    // 음성 메시지: 재생 버튼을 눌러야 듣고, 다 들으면 다음으로
+    const listenVoice = (el, m) => new Promise((done) => {
+      const btn = $('.vm-play', el);
+      el.classList.add('wait');
+      hintLater('▶ 눌러서 듣기', 0);
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        el.classList.remove('wait'); el.classList.add('playing'); clearCtas();
+        const dur = m.dur || 4, bars = [...el.querySelectorAll('.vm-wave i')];
+        let audio = null, t0 = performance.now(), r;
+        if (m.voice) { audio = new Audio(m.voice); audio.muted = muted; audio.play().catch(() => {}); }
+        const tick = () => {
+          if (!alive) { audio?.pause(); return done(false); }
+          const t = audio && audio.currentTime > 0 ? audio.currentTime : (performance.now() - t0) / 1000;
+          const end = audio && isFinite(audio.duration) ? audio.duration : dur;
+          const on = Math.floor(Math.min(1, t / end) * bars.length);
+          bars.forEach((b, k) => b.classList.toggle('on', k < on));
+          const e = currentSub(m.subs, t);
+          defaultSub(e ? e[2] : '', e ? e[3] : '');
+          if (t >= end || audio?.ended) { el.classList.remove('playing'); setTimeout(() => { defaultSub(''); done(true); }, 700); return; }
+          r = requestAnimationFrame(tick);
+        };
+        tick();
+      }, { once: true });
+    });
 
     // 내 메시지: 입력창에 한 글자씩 타이핑 → 전송
     const typeAndSend = async (body, text, prev) => {
@@ -780,8 +812,10 @@
           await pause(typeof text === 'string' ? Math.min(1700, 500 + text.length * 45) : 1500);
           if (!alive) return;
           typing.remove();
-          body.append(bubble(who, text, prev, true));
+          const bEl = bubble(who, text, prev, true);
+          body.append(bEl);
           Sound.pop();   // 대화방 안에서는 짧은 합성음 (receive 파일은 알림 때만)
+          if (text && typeof text === 'object' && 'voice' in text) { await pause(400); if (!(await listenVoice(bEl, text))) return; }
         }
         prev = who;
         await pause(380);
