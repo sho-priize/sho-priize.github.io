@@ -267,10 +267,12 @@
   }
 
   // 안내(CTA)는 지금 장면에서만 유효. 장면이 바뀐 뒤 늦게 도착한 요청은 무시
-  let sceneNo = 0;
-  function showHint(text, no = sceneNo) { if (no !== sceneNo) return; hint.textContent = text; hint.hidden = false; }
-  function hintLater(text, ms) { const no = sceneNo; setTimeout(() => showHint(text, no), ms); }
+  // 사용자가 뭔가 하면(탭·선택·다음 장면) clearCtas() → ctaNo 가 바뀌어서 예약돼 있던 안내도 전부 취소됨
+  let sceneNo = 0, ctaNo = 0;
+  function showHint(text, no = sceneNo, c = ctaNo) { if (no !== sceneNo || c !== ctaNo) return; hint.textContent = text; hint.hidden = false; }
+  function hintLater(text, ms) { const no = sceneNo, c = ctaNo; setTimeout(() => showHint(text, no, c), ms); }
   function clearCtas() {
+    ctaNo++;
     hint.hidden = true; hint.textContent = '';
     document.querySelectorAll('.r-cta, .n-cta').forEach((el) => el.classList.remove('show'));
   }
@@ -499,6 +501,7 @@
       if (locked || !options[k]) return;
       locked = true;
       clearInterval(choiceTimer);
+      clearCtas();
       const o = options[k];
       choicesEl.querySelector(`[data-k="${k}"]`).classList.add('picked');
       choicesEl.classList.add('decided');
@@ -585,7 +588,7 @@
       $('.r-cta', pscreen)?.remove();
       stopRing(); vibrate(0);
       phone.classList.remove('ringing');
-      hint.hidden = true;
+      clearCtas();
       if (sc.answer) {
         // 받기 → 폰이 화면 가득 확대되며 전체화면 클립으로
         side('VIDEO CALL', name, '<i class="dot on"></i>연결됨');
@@ -830,9 +833,10 @@
           layout: 'side',
           onPick: async (o) => {
             if (o.reply === false) { await pause(550); return; }   // 버튼 그대로 두고 다음 화면으로
+            // 메시지를 보내는 선택지: 선택지는 바로 치우고 입력창 타이핑 → 전송부터
+            choicesEl.innerHTML = ''; choicesEl.className = '';
             $('.v-chat', pscreen)?.style.removeProperty('--sheet');
             const reply = o.reply ?? o.text;
-            await pause(200);
             if (await typeAndSend(body, reply, prev)) {
               hist.push(['me', reply]);
               await pause(1000);
@@ -877,7 +881,7 @@
       }, sc.notifyDelay ?? (n.overlay ? 300 : 900)));
       pscreen.onclick = () => {
         if (!$('.banner.in', pscreen)) return;
-        pscreen.onclick = null; hint.hidden = true;
+        pscreen.onclick = null; clearCtas();
         openChat(true);
       };
     };
@@ -924,7 +928,7 @@
         row.onclick = () => {
           const r = recents[+row.dataset.k];
           if (r.name !== target) { say(sc.wrongText || `지금은 ${target}에게 걸어야 해.`); return; }
-          hint.hidden = true;
+          clearCtas();
           row.classList.add('tapped');
           later(() => calling(r), 180);
         };
