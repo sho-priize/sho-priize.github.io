@@ -236,7 +236,7 @@
     if (ph.parentNode !== stage) stage.insertBefore(ph, vignette);
     if (!keepScreen) pscreen.innerHTML = '';
     pscreen.onclick = null;
-    $('.toast', stage)?.remove();
+    $('.toast', stage)?.remove(); $('.mash', stage)?.remove();
     phone.classList.remove('ringing');
     sideInfo.innerHTML = '';
   }
@@ -370,6 +370,38 @@
     return null;
   }
 
+  /* 연타 이벤트: 마지막 장면에서 버튼 → 제한 시간 안에 n번 누르면 성공 */
+  function startMash(id, m) {
+    const my = token, need = m.taps || 10, ms = (m.window || 1.5) * 1000;
+    state.checkpoint = { id, flags: { ...state.flags }, path: state.path.slice(), threads: JSON.parse(JSON.stringify(state.threads)) };
+    Route.snap(id, state.checkpoint);
+    const el = document.createElement('div');
+    el.className = 'mash';
+    el.innerHTML = `<button class="mash-btn"><b>${esc(m.text || '빠르게 연타하세요!')}</b><span class="mash-n">0 / ${need}</span></button><i class="mash-bar"><s></s></i>`;
+    stage.append(el);
+    const btn = $('.mash-btn', el), nEl = $('.mash-n', el), bar = $('.mash-bar s', el);
+    let n = 0, done = false;
+    vibrate(200);
+    const end = (ok) => {
+      if (done) return; done = true;
+      el.classList.add(ok ? 'win' : 'lose');
+      Route.pick(id, ok ? 0 : 1);
+      setTimeout(() => { if (my === token) go(resolve(ok ? m.success : m.fail)); }, 600);
+    };
+    requestAnimationFrame(() => {
+      bar.style.transition = `transform ${ms}ms linear`; bar.style.transform = 'scaleX(0)';
+    });
+    setTimeout(() => end(n >= need), ms);
+    btn.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      if (done) return;
+      n++; nEl.textContent = `${Math.min(n, need)} / ${need}`;
+      btn.classList.remove('hit'); void btn.offsetWidth; btn.classList.add('hit');
+      vibrate(15);
+      if (n >= need) end(true);
+    });
+  }
+
   /* 클립 재생 + 자막 + (선택지 구간 느린 반복) 공통 루프 */
   function runClip(id, sc, P, opts, { layout, onEnd, onChoice, onTick } = {}) {
     const ch = sc.choice;
@@ -409,7 +441,8 @@
           mode = 'done';
           const finish = () => (onEnd ? onEnd() : go(resolve(sc.next)));
           // holdEnd: 마지막 프레임·마지막 자막 그대로 n초 멈췄다가 넘어감
-          if (sc.holdEnd) { P.pause(); holdT = setTimeout(finish, sc.holdEnd * 1000); }
+          if (sc.mash) { P.pause(); startMash(id, sc.mash); }
+          else if (sc.holdEnd) { P.pause(); holdT = setTimeout(finish, sc.holdEnd * 1000); }
           else finish();
         }
       } else if (mode === 'choice' && !atEnd) {
@@ -690,7 +723,7 @@
     const hist = (state.threads[thread] ||= []);
     // 같은 장면에 다시 들어온 경우(마지막 선택으로 등) 그 시점 이후 기록은 지움
     const seen = hist.findIndex((e) => e.scene === id);
-    if (seen >= 0) hist.length = seen;
+    if (seen >= 0 && !opts.cont) hist.length = seen;
 
     const title = sc.title || sc.from || '메시지';
     const instant = !!opts.atChoice;
@@ -709,6 +742,12 @@
         el.innerHTML = `${showName ? `<small>${esc(who)}</small>` : ''}<span><button class="vm-play" aria-label="재생"><i></i></button><b class="vm-wave">${bars}</b><em class="vm-dur">0:${pad2(Math.round(text.dur || 0))}</em></span>`;
         return el;
       }
+      if (text && typeof text === 'object' && text.video) {   // 영상 메시지 (누르면 재생)
+        el.classList.add('pic', 'vid');
+        el.dataset.video = text.video;
+        el.innerHTML = `${showName ? `<small>${esc(who)}</small>` : ''}<span><img src="${text.thumb || ''}" alt=""><i class="vid-play"></i></span>`;
+        return el;
+      }
       if (text && typeof text === 'object' && text.img) {   // 사진 메시지
         el.classList.add('pic');
         el.innerHTML = `${showName ? `<small>${esc(who)}</small>` : ''}<span><img src="${text.img}" alt=""></span>`;
@@ -718,6 +757,35 @@
       el.lastChild.textContent = text;
       return el;
     };
+
+    // 영상 메시지 보기: 폰 화면 위에 꽉 차게 재생, 끝나거나 화면을 누르면 닫힘
+    let vidsDone = null;
+    const leftVids = () => [...pscreen.querySelectorAll('.bub.vid')].filter((b) => b.dataset.scene === id && !b.classList.contains('viewed'));
+    const checkVids = () => { if (!leftVids().length && vidsDone) { const f = vidsDone; vidsDone = null; f(); } };
+    const openVideo = (b) => {
+      clearCtas();
+      const ov = document.createElement('div');
+      ov.className = 'vviewer';
+      ov.innerHTML = `<video playsinline webkit-playsinline src="${b.dataset.video}"></video><button class="vv-x" aria-label="닫기">✕</button>`;
+      pscreen.append(ov);
+      const v = $('video', ov);
+      v.muted = muted;
+      v.play().catch(() => { v.muted = true; v.play().catch(() => {}); });
+      let closed = false;
+      const close = () => {
+        if (closed) return; closed = true;
+        v.pause(); ov.classList.add('out'); setTimeout(() => ov.remove(), 250);
+        b.classList.add('viewed'); checkVids();
+        if (leftVids().length) hintLater('영상을 눌러서 확인하세요', 900);
+      };
+      v.addEventListener('ended', close);
+      ov.addEventListener('click', (e) => { e.stopPropagation(); close(); });
+    };
+    const onVidTap = (e) => {
+      const b = e.target.closest('.bub.vid');
+      if (b && alive && !e.target.closest('.vviewer')) { e.stopPropagation(); openVideo(b); }
+    };
+    pscreen.addEventListener('click', onVidTap);
 
     // 음성 메시지: 재생 버튼을 눌러야 듣고, 다 들으면 다음으로
     const listenVoice = (el, m) => new Promise((done) => {
@@ -820,6 +888,7 @@
           if (!alive) return;
           typing.remove();
           const bEl = bubble(who, text, prev, true);
+          bEl.dataset.scene = id;
           body.append(bEl);
           Sound.pop();   // 대화방 안에서는 짧은 합성음 (receive 파일은 알림 때만)
           if (text && typeof text === 'object' && 'voice' in text) { await pause(400); if (!(await listenVoice(bEl, text))) return; }
@@ -828,6 +897,15 @@
         await pause(380);
       }
       if (!alive) return;
+
+      // 영상 메시지가 있으면 전부 눌러서 본 뒤에 선택지
+      const vids = [...body.querySelectorAll('.bub.vid')].filter((b) => b.dataset.scene === id);
+      if (vids.some((b) => !b.classList.contains('viewed'))) {
+        hintLater('영상을 눌러서 확인하세요', 600);
+        await new Promise((ok) => { vidsDone = ok; checkVids(); });
+        if (!alive) return;
+        await pause(500);
+      }
 
       if (sc.choice) {
         // 선택지 시트가 올라오면 대화창을 그만큼 위로 (마지막 메시지가 가려지지 않게)
@@ -902,6 +980,7 @@
     cleanup = () => {
       alive = false; timers.forEach(clearTimeout); closeChoice();
       if (tapNext) pstage.removeEventListener('click', tapNext);
+      pscreen.removeEventListener('click', onVidTap);
     };
   }
 
@@ -1245,12 +1324,16 @@
       seen.add(id);
       const sc = SC[id];
       // 루트에는 고를 게 2개 이상인 선택지만 (버튼 하나짜리는 건너뜀)
-      if (sc.choice && sc.choice.options.length >= 2) return { kind: 'choice', id };
+      if ((sc.choice && sc.choice.options.length >= 2) || sc.mash) return { kind: 'choice', id };
       if (sc.type === 'ending') return { kind: 'ending', id };
       id = sc.choice ? sc.choice.options[0].next : sc.answer || sc.next;
     }
     return { kind: 'open' };
   }
+
+  // 루트에서 갈라지는 길: 선택지, 또는 연타 이벤트(성공/실패)
+  const routeOptions = (sc) => sc.choice ? sc.choice.options
+    : [{ text: '연타 성공', next: sc.mash.success }, { text: '연타 실패', next: sc.mash.fail }];
 
   function routeGraph() {
     const nodes = [], edges = [], byKey = new Map();
@@ -1261,7 +1344,7 @@
       const n = add({ key, kind: target.kind, id: target.id, depth, parentKey, children: [] });
       if (target.kind === 'choice') {
         const picked = Route.picked(target.id);
-        SC[target.id].choice.options.forEach((o, i) => {
+        routeOptions(SC[target.id]).forEach((o, i) => {
           // 아직 안 고른 선택지는 어디로 이어지는지 숨김 (엔딩 스포 방지) → '?' 칸만
           const child = picked.includes(i)
             ? make(followRoute(o.next), depth + 1, key, `${key}#${i}`)

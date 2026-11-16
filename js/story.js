@@ -533,7 +533,147 @@ window.STORY = {
         [3, 99, '생일파티 준비 같이 하자.'],
         [4.5, 99, '얼마나 준비된건지 감도 안온다', 'think'],   // 아래 줄에 함께
       ],
-      next: 'n_tbd',
+      next: 'n_sohee1',
+    },
+
+    /* ── 소희 갈래 ── */
+    n_sohee1: {
+      type: 'narration',
+      lines: [
+        '소희가 자기만 믿으라고 했다.',
+        '뭔가 야무지다.',
+        '하지만 아무래도 참견을 해야겠다.',
+      ],
+      choice: { options: [{ text: '참견하기', next: 'p_sohee1' }] },
+    },
+
+    // 소희 개인 문자 (같은 대화방에서 화면 그대로 이어짐)
+    p_sohee1: {
+      type: 'chat', thread: 'sohee', title: '소희', icon: '소',
+      msgs: [
+        ['me', '소희야 잘 돼가고 있어?'],
+        ['소희', '아~ 당연한 거 아니야?'],
+        ['소희', '두개중에 골라봐'],
+      ],
+      choice: { options: [{ text: '뭔데?', next: 'p_sohee1b' }] },
+    },
+    p_sohee1b: {
+      type: 'chat', thread: 'sohee', title: '소희', icon: '소',
+      route: { title: '열받게? 감동받게?', thumb: 'media/images/thumbs/p_sohee1b.jpg' },
+      msgs: [['소희', '쇼타로 열받게 하기 vs 쇼타로 감동받게 하기']],
+      choice: {
+        options: [
+          { text: '쇼타로 열받게 하기', reply: false, next: 'p_sohee2' },
+          { text: '쇼타로 감동받게 하기', reply: false, next: 'p_sohee3' },
+        ],
+      },
+    },
+    p_sohee2: {
+      type: 'chat', thread: 'sohee', title: '소희', icon: '소',
+      route: { title: '소희를 믿을까', thumb: 'media/images/thumbs/p_sohee2.jpg' },
+      msgs: [
+        ['me', '잠만'],
+        ['me', '근데 어떻게 열받게 하게?'],
+        ['소희', '다 방법이 있지'],
+        ['소희', '걍 믿고 따라와'],
+      ],
+      choice: {
+        options: [
+          { text: '마음을 바꿔서 감동받게 하자고 한다', reply: false, next: 'p_sohee3' },
+          { text: '믿고 따라간다', reply: false, next: 'n_sohee2' },
+        ],
+      },
+    },
+    p_sohee3: {
+      type: 'chat', thread: 'sohee', title: '소희', icon: '소',
+      route: { title: '소희의 멘트', thumb: 'media/images/thumbs/p_sohee3.jpg' },
+      msgs: [
+        ['me', '아니 이건 감동으로 가야지'],
+        ['소희', '그러면 골라봐'],
+        ['소희', '나의 멘트를'],
+        ['소희', { video: 'media/clips/sohee_3_1.mp4', thumb: 'media/images/sohee_3_1.jpg' }],   // 눌러서 보기
+        ['소희', { video: 'media/clips/sohee_3_2.mp4', thumb: 'media/images/sohee_3_2.jpg' }],
+        ['소희', { video: 'media/clips/sohee_3_3.mp4', thumb: 'media/images/sohee_3_3.jpg' }],   // 셋 다 본 뒤 선택지
+      ],
+      choice: {
+        options: [
+          { text: '마음을 바꿔서 열받게 하자고 한다', reply: false, next: 'p_sohee2' },
+          { text: '다 괜찮은 것 같다', reply: false, next: 'n_sohee3' },
+        ],
+      },
+    },
+
+    // 열받게 하기 → 실패
+    n_sohee2: { type: 'narration', lines: ['뭔가 믿음이 간다..'], next: 'c_sohee2' },
+    c_sohee2: { type: 'clip', src: 'media/clips/sohee2.mp4', next: 'n_sohee2b' },
+    n_sohee2b: {
+      type: 'narration',
+      lines: [
+        '최선을 다해 쇼타로를 귀찮게 하는 소희의 노력을 봤지만',
+        '쇼타로가 열받지 않아서 깜짝파티가 흐지부지되었다..',
+      ],
+      next: 'e_bad_sohee',
+    },
+    e_bad_sohee: {
+      type: 'ending',
+      title: '예열 실패',
+      route: { thumb: 'media/images/thumbs/e_bad_sohee.jpg' },
+      desc: '아니키만의 소희인 것만 더 증명되었다..\n그래도 사이는 더 좋아진 것 같다',
+      bg: ['#3a2a4a', '#08060c'],
+      voice: {
+        name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
+        src: null, duration: 3,   // ← 음성 받으면 연결
+        subs: [[0, 3, '(쇼타로의 한마디 — 추후 제공)']],
+      },
+    },
+
+    // 감동받게 하기 → 응급상황 연타
+    n_sohee3: {
+      type: 'narration',
+      lines: [
+        '뭔가 준비가 제대로다..',
+        '당신은 마음 편하게 모든 것을 맡기고 깜짝파티를 즐기기로 했다',
+      ],
+      next: 'c_sohee3',
+    },
+    c_sohee3: {
+      type: 'clip', src: 'media/clips/sohee3.mp4',
+      route: { title: '응급상황!', thumb: 'media/images/thumbs/c_sohee3.jpg' },
+      // 영상 끝 장면에서 버튼 → 1.5초 안에 10번
+      mash: { text: '응급상황! 빠르게 연타하세요!', taps: 10, window: 1.5, success: 'c_sohee4', fail: 'n_sohee4' },
+    },
+    c_sohee4: { type: 'clip', src: 'media/clips/sohee4.mp4', next: 'e_good_sohee1' },
+    n_sohee4: {
+      type: 'narration',
+      lines: [
+        '이런.. 예상치 못한 상황에서 민첩하게 대처하지 못했습니다',
+        '깜짝파티의 흥이 다 깨져버렸습니다.....',
+      ],
+      next: 'e_bad_sohee1',
+    },
+    e_bad_sohee1: {
+      type: 'ending',
+      title: '민첩한 하루 되세요',
+      route: { thumb: 'media/images/thumbs/e_bad_sohee1.jpg' },
+      desc: '민첩했다면 다른 결과가 있었을지도?',
+      bg: ['#2a3a4a', '#06080c'],
+      voice: {
+        name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
+        src: null, duration: 3,   // ← 음성 받으면 연결
+        subs: [[0, 3, '(쇼타로의 한마디 — 추후 제공)']],
+      },
+    },
+    e_good_sohee1: {
+      type: 'ending',
+      title: '나의 사랑을 받아줘!',
+      route: { thumb: 'media/images/thumbs/e_good_sohee1.jpg' },
+      desc: '민첩한 임기응변으로 깜짝파티를 성공했습니다!',
+      bg: ['#4a3a1a', '#0c0a04'],
+      voice: {
+        name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
+        src: 'media/voices/good_sohee1.m4a',   // voice_good_sohee1 영상에서 소리만
+        subs: [[0, 99, '우와~ 우와.. 진~짜 예상치 못했다']],
+      },
     },
 
     ...memberCall('앤톤', '', 'anton'),
