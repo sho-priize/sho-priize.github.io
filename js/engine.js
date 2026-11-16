@@ -1273,7 +1273,7 @@
       endingEl.onclick = (e) => {
         const act = e.target.closest('[data-act]')?.dataset.act;
         if (act === 'restart') { voiceStop(); go('@route'); }
-        if (act === 'share') shareEnding(sc);
+        if (act === 'share') shareEnding(sc, id);
         if (act === 'voice') { card.classList.add('listening'); $('.vc-sub', card).textContent = ''; playVoice(); }
         if (act === 'replay') playVoice();
         if (act === 'stop') { voiceStop(); card.classList.remove('listening'); }
@@ -1315,14 +1315,16 @@
     } catch { return null; }
   }
 
-  async function shareEnding(sc) {
-    const url = location.origin + location.pathname;
-    const text = `[${CFG.title}] '${sc.title}' 엔딩을 봤어요!`;
-    try {
-      if (navigator.share) { await navigator.share({ title: CFG.title, text, url }); return; }
-    } catch (e) { if (e.name === 'AbortError') return; }
-    try { await navigator.clipboard.writeText(`${text}\n${url}`); toast('링크를 복사했어요'); }
-    catch { toast('이 브라우저에서는 공유를 지원하지 않아요'); }
+  // 엔딩 공유: X(트위터) 글쓰기 화면을 문구가 채워진 상태로 열기 → '게시하기'만 누르면 됨
+  // 링크는 엔딩별 페이지(e/<id>.html) → X가 그 엔딩 전용 미리보기 이미지를 붙임, 누르면 게임으로 이동
+  const SITE = 'https://sho-priize.github.io';
+  function shareEnding(sc, id) {
+    const got = ENDING_IDS.filter((e) => new Set(store.get(ENDINGS_KEY, [])).has(e)).length;
+    const kind = sc.kind === 'good' ? '🎉 GOOD ENDING' : '😢 BAD ENDING';
+    const text = `${kind} : ${sc.title}\n현재까지 ${got}/${ENDING_IDS.length}개 엔딩 수집!\n라이즈와 함께 쇼타로의 생일파티 준비하기⬇️⬇️\n${SITE}/e/${id}.html`;
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+    const w = window.open(url, '_blank');
+    if (!w) location.href = url;   // 새 창이 막히면(인앱 브라우저 등) 지금 창에서
   }
 
   function toast(msg) {
