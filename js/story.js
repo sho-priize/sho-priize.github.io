@@ -420,11 +420,7 @@ window.STORY = {
         ['은석', {
           voice: 'media/voices/eunseok1.m4a',   // eunseok1 영상에서 소리만 뽑음
           dur: 6,
-          subs: [
-            [0, 1.5, '그래요~'],
-            [1.5, 3.8, '의뢰를 받았으면~'],
-            [3.8, 99, '의뢰를 해야 하는 게 인지상정이죠?'],
-          ],
+          subs: [],   // 자막 없이 소리만
         }],
       ],
       choice: { options: [{ text: '어떻게 할 건데?', next: 'p_eunseok2' }] },

@@ -83,6 +83,9 @@
   }
 
   /* ---------- 효과음 (파일 없으면 WebAudio로 합성) ---------- */
+  // 아이폰: 무음 모드(옆 스위치)여도 효과음이 영상 소리처럼 나오게 (iOS 16.4+)
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch {}
+
   const Sound = (() => {
     let ctx = null;
     const ac = () => {
@@ -129,7 +132,8 @@
         try {
           const c = ac(); if (!c) return;
           Object.values(S).forEach(load);
-          c.resume();
+          if (c.state !== 'running') c.resume();   // 'suspended' / 'interrupted'(전화·앱 전환 후) 모두 다시 켬
+          try { if (navigator.audioSession && navigator.audioSession.type !== 'playback') navigator.audioSession.type = 'playback'; } catch {}
           // iOS: 터치 순간 무음 1샘플 재생해야 이후 소리가 남
           const s = c.createBufferSource(); s.buffer = c.createBuffer(1, 1, 22050); s.connect(c.destination); s.start(0);
         } catch {}
@@ -475,7 +479,7 @@
     bgx.clearRect(0, 0, bgc.width, bgc.height);
     const bgTimer = sc.src ? setInterval(() => {
       if (video.readyState >= 2) { try { bgx.drawImage(video, 0, 0, bgc.width, bgc.height); } catch {} }
-    }, 150) : null;
+    }, 1200) : null;   // 자주 그리면 폰에서 영상·소리가 버벅여서 가끔만 (배경은 흐려서 티 안 남)
     let choosing = false, dragging = false, wasPaused = false, hideT;
     const showPaused = (on) => pauseInd.classList.toggle('on', on);
     const fill = $('.sb-fill', scrub), timeEl = $('.sb-time', scrub), track = $('.sb-track', scrub);
@@ -803,7 +807,7 @@
     const listenVoice = (el, m) => new Promise((done) => {
       const btn = $('.vm-play', el);
       el.classList.add('wait');
-      hintLater('▶ 눌러서 듣기', 0);
+      hintLater('▶ 눌러서 듣기', 3000);   // 도착하고 3초 뒤에 안내
       btn.addEventListener('click', (ev) => {
         ev.stopPropagation();
         el.classList.remove('wait'); el.classList.add('playing'); clearCtas();
@@ -1366,7 +1370,12 @@
     const add = (n) => { nodes.push(n); byKey.set(n.key, n); return n; };
     const make = (target, depth, parentKey, edgeKey) => {
       const key = target.kind === 'open' ? `open:${edgeKey}` : target.id;
-      if (byKey.has(key)) return byKey.get(key);   // 여러 길이 같은 장면으로 모이는 경우
+      if (byKey.has(key)) {
+        const ex = byKey.get(key);
+        // 위쪽(앞쪽)에 이미 있는 지점으로 되돌아가는 길: 선을 거꾸로 긋지 않고 '↩ 그 지점' 작은 칸
+        if (ex.depth < depth) return add({ key: `back:${edgeKey}`, kind: 'back', id: ex.id, depth, parentKey, children: [] });
+        return ex;   // 여러 길이 같은 장면으로 모이는 경우
+      }
       const n = add({ key, kind: target.kind, id: target.id, depth, parentKey, children: [] });
       if (target.kind === 'choice') {
         const picked = Route.picked(target.id);
@@ -1392,7 +1401,7 @@
     const place = (n) => {
       const own = n.children.filter((c) => c.parentKey === n.key);
       own.forEach(place);
-      n.size = n.kind === 'open' ? 'small' : 'card';
+      n.size = n.kind === 'open' || n.kind === 'back' ? 'small' : 'card';
       n.slot = SLOT[n.size];
       if (own.length) n.x = (own[0].x + own[own.length - 1].x) / 2;
       else { n.x = cursor + SLOT[n.size] / 2; cursor += SLOT[n.size]; }
@@ -1420,7 +1429,7 @@
 
     const reached = (n) => n.kind === 'start' || (n.kind === 'choice' && !!snaps[n.id]) || (n.kind === 'ending' && unlocked.has(n.id));
     const taken = (e) => (e.scene ? Route.picked(e.scene).includes(e.opt) : reached(e.to));
-    const halfH = (n) => (n.size === 'small' ? 6 : 15);   // 노드 위아래 반 높이 (cqw)
+    const halfH = (n) => (n.size === 'small' ? 8 : 15);   // 노드 위아래 반 높이 (cqw)
     const cx = (n) => n.x;
 
     // 선: 부모 아래 → 자식 위 (간 길: 강조 / 안 간 길: 흐린 점선)
@@ -1444,17 +1453,27 @@
     // - 다른 길이 합류하는 선: 선의 가운데 (같은 자리에 겹치지 않게)
     const chips = edges.filter((e) => e.label).map((e) => {
       const tree = e.to.parentKey === e.from.key;
-      // 합류하는 선은 옆으로 돌아가는 길 바깥쪽 가운데
-      const x = tree ? e.to.x : laneX(e);
-      const y = tree ? e.to.cy - halfH(e.to) - 5 : (e.from.cy + e.to.cy) / 2;
+      const twins = edges.filter((o) => o.label && o.from === e.from && o.to === e.to);
+      const ti = twins.indexOf(e), tn = twins.length;
+      // 합류하는 선은 옆으로 돌아가는 길 바깥쪽 가운데 / 같은 곳으로 가는 선택지가 여럿이면 나란히
+      const x = tree ? e.to.x + (tn > 1 ? (ti - (tn - 1) / 2) * (e.to.slot / tn) : 0) : laneX(e);
+      // 가지 이름표는 아래쪽 끝을 자식 칸 바로 위에 붙임 → 줄이 늘어도 위로만 커져서 칸과 안 겹침
+      const y = tree ? e.to.cy - halfH(e.to) - 1.5 : (e.from.cy + e.to.cy) / 2;
       const open = reached(e.from);
-      return `<span class="r-chip ${taken(e) ? 'on' : ''}${tree ? '' : ' merge'}" style="left:${x.toFixed(2)}cqw;top:${y.toFixed(2)}cqw;--mw:${(tree ? e.to.slot - 1 : 30).toFixed(1)}cqw">${open ? esc(e.label) : '?'}</span>`;
+      const mw = tree ? (tn > 1 ? e.to.slot / tn - 1.5 : e.to.slot - 1) : 30;
+      return `<span class="r-chip ${taken(e) ? 'on' : ''}${tree ? ' tree' : ' merge'}" style="left:${x.toFixed(2)}cqw;top:${y.toFixed(2)}cqw;--mw:${mw.toFixed(1)}cqw">${open ? esc(e.label) : '?'}</span>`;
     }).join('');
 
     const cards = nodes.map((n) => {
       const ok = reached(n);
       const sc = SC[n.id] || {};
       const style = `left:${n.x.toFixed(2)}cqw;top:${n.cy.toFixed(2)}cqw`;
+      if (n.kind === 'back') {
+        const via = edges.find((e) => e.to === n);
+        const got = via && taken(via);
+        const tt = SC[n.id]?.route?.title || n.id;
+        return `<div class="r-node small back ${got ? 'reached' : ''}" style="${style}"><i>↩</i><span>${got ? esc(tt) : ''}</span></div>`;
+      }
       if (n.kind === 'open') {
         const via = edges.find((e) => e.to === n);
         const got = via && taken(via);
