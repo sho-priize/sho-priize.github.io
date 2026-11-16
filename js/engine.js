@@ -214,7 +214,14 @@
       if (my !== token) return;
     }
     requestAnimationFrame(() => { fade.classList.remove('on'); pscreen.classList.remove('swap'); });
-    Preload.ahead(id);
+    // 지금 영상이 끝까지 받아질 만큼 되면(또는 6초 뒤) 다음 장면들 미리 받기 → 지금 영상과 인터넷을 나눠 쓰지 않게
+    const playingClip = !video.hidden && video.getAttribute('src') && !video.getAttribute('src').startsWith('blob:');
+    if (playingClip) {
+      let fired = false;
+      const ahead = () => { if (fired || my !== token) return; fired = true; Preload.ahead(id); };
+      video.addEventListener('canplaythrough', ahead, { once: true });
+      setTimeout(ahead, 6000);
+    } else Preload.ahead(id);
   }
 
   function teardown(keepScreen = false) {
@@ -230,7 +237,7 @@
     routeEl.hidden = true; routeEl.innerHTML = '';
     tapPlay.hidden = true;
     hint.hidden = true;
-    stage.classList.remove('slowmo');
+    stage.classList.remove('slowmo', 'clip-full');
     // 폰 안으로 옮겨 둔 영상/플레이스홀더를 무대로 복귀
     if (video.parentNode !== stage) stage.insertBefore(video, vignette);
     if (ph.parentNode !== stage) stage.insertBefore(ph, vignette);
@@ -293,6 +300,7 @@
       let idx = 0, offset = 0;
       video.hidden = false; ph.hidden = true;
       video.removeAttribute('poster');
+      Preload.focus();
       const want0 = Preload.url(list[0]);
       if (video.getAttribute('src') !== want0) video.src = want0;
       video.loop = loop && list.length === 1;
@@ -322,6 +330,10 @@
         video.addEventListener('playing', release, { once: true });
         setTimeout(release, 10000);
       }
+      // 세로 영상은 위쪽 칸 대신 화면 가득 채워서
+      const fitPortrait = () => stage.classList.toggle('clip-full', stage.dataset.type === 'clip' && video.videoHeight > video.videoWidth);
+      stage.classList.remove('clip-full');
+      if (video.readyState >= 1) fitPortrait(); else video.addEventListener('loadedmetadata', fitPortrait, { once: true });
       video.muted = muted;
       video.playbackRate = 1;
       if (!(quick && !video.paused)) { try { video.currentTime = sc.start || 0; } catch {} }
@@ -457,7 +469,7 @@
 
   /* ---------- 클립 장면 (전체화면) ---------- */
   function playClip(id, sc, opts) {
-    const P = makePlayer(sc, { quick: !!opts.atChoice && !!sc.choice });
+    const P = makePlayer(sc, { quick: !!opts.atChoice && !!(sc.choice || sc.mash) });   // 루트에서 바로: 썸네일 먼저 깔고 즉시 시작
     // 영상 뒤 화면 전체: 같은 영상을 작게 그려서 흐리게 (CSS blur)
     const bgc = $('#clip-bg'), bgx = bgc.getContext('2d');
     bgx.clearRect(0, 0, bgc.width, bgc.height);
@@ -970,6 +982,7 @@
 
     const contBody = opts.cont && $('.v-chat .m-body', pscreen);
     if (contBody) {
+      $('.v-chat', pscreen)?.style.removeProperty('--sheet');   // 앞 장면 선택지 자리만큼 올려둔 것 원위치 (아래가 까맣게 비지 않게)
       // 이어서: 이미 있는 화면에 이번 장면 메시지만 추가
       const last = [...hist].reverse().find(Boolean);
       const lastList = last ? (last.scene ? SC[last.scene].msgs || [] : [last]) : [];
@@ -1552,6 +1565,7 @@
     const sc = SC[id];
     if (!sc?.src || sc.type !== 'clip') return;
     const src = [].concat(sc.src)[0];
+    Preload.focus();
     if (video.getAttribute('src') !== Preload.url(src)) video.src = Preload.url(src);
     video.muted = muted;
     if (atChoice && sc.choice) { const t = sc.choice.at; try { video.currentTime = typeof t === 'number' ? t : 0; } catch {} }
@@ -1609,6 +1623,7 @@
   const Preload = (() => {
     // 영상은 통째로 받아서 메모리(blob)에 넣어 둠 → 그 장면이 오면 네트워크 기다림 없이 바로 재생 (아이폰 포함)
     const blobs = new Map();      // 원래 주소 → blob 주소 (또는 받는 중이면 Promise)
+    const ctls = new Map();       // 받는 중인 것 → 취소용
     const order = [];
     const MAX = 7;                // 동시에 들고 있을 영상 수
     const imgs = new Set();
@@ -1617,10 +1632,11 @@
       if (!url) return;
       if (/\.(jpe?g|png|webp|gif)$/i.test(url)) { if (!imgs.has(url)) { imgs.add(url); new Image().src = url; } return; }
       if (!isVideo(url) || blobs.has(url)) return;
-      const job = fetch(url).then((r) => { if (!r.ok) throw 0; return r.blob(); })
-        .then((b) => { const u = URL.createObjectURL(b); blobs.set(url, u); return u; })
-        .catch(() => { blobs.delete(url); });
-      blobs.set(url, job);
+      const ctl = new AbortController();
+      const job = fetch(url, { signal: ctl.signal }).then((r) => { if (!r.ok) throw 0; return r.blob(); })
+        .then((b) => { const u = URL.createObjectURL(b); blobs.set(url, u); ctls.delete(url); return u; })
+        .catch(() => { blobs.delete(url); ctls.delete(url); const i = order.indexOf(url); if (i >= 0) order.splice(i, 1); });
+      blobs.set(url, job); ctls.set(url, ctl);
       order.push(url);
       while (order.length > MAX) {
         const old = order.shift(), v = blobs.get(old);
@@ -1636,6 +1652,9 @@
       add,
       // 받아 둔 게 있으면 blob 주소, 아니면 원래 주소
       url: (u) => { const v = blobs.get(u); return typeof v === 'string' ? v : u; },
+      // 지금 바로 볼 영상에 인터넷을 몰아줌: 아직 받는 중인 미리받기는 전부 취소
+      // (지금 영상이 다 받아지지 않았으면 원래 주소로 바로 스트리밍 → 처음 프레임이 빨리 나옴)
+      focus() { for (const [u, c] of ctls) { c.abort(); blobs.delete(u); } ctls.clear(); },
       // 앞으로 나올 수 있는 장면들을 가까운 순서로 (영상 3개 정도 앞까지)
       ahead(id) {
         const seen = new Set([id]); let q = [id], found = 0;

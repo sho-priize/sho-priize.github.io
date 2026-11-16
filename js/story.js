@@ -609,8 +609,7 @@ window.STORY = {
     n_sohee2b: {
       type: 'narration',
       lines: [
-        '최선을 다해 쇼타로를 귀찮게 하는 소희의 노력을 봤지만',
-        '쇼타로가 열받지 않아서 깜짝파티가 흐지부지되었다..',
+        '최선을 다해 쇼타로를 귀찮게 하는 소희의 노력을 봤지만 쇼타로가 열받지 않아서 깜짝파티가 흐지부지되었다..',
       ],
       next: 'e_bad_sohee',
     },
@@ -632,15 +631,15 @@ window.STORY = {
       type: 'narration',
       lines: [
         '뭔가 준비가 제대로다..',
-        '당신은 마음 편하게 모든 것을 맡기고 깜짝파티를 즐기기로 했다',
+        '마음 편하게 모든 것을 맡기고 깜짝파티를 즐기기로 했다',
       ],
       next: 'c_sohee3',
     },
     c_sohee3: {
       type: 'clip', src: 'media/clips/sohee3.mp4',
       route: { title: '응급상황!', thumb: 'media/images/thumbs/c_sohee3.jpg' },
-      // 영상 끝 장면에서 버튼 → 2초 안에 7번
-      mash: { text: '응급상황! 빠르게 연타하세요!', taps: 7, window: 2, success: 'c_sohee4', fail: 'n_sohee4' },
+      // 영상 끝 장면에서 버튼 → 1.5초 안에 10번
+      mash: { text: '응급상황! 빠르게 연타하세요!', taps: 10, window: 1.5, success: 'c_sohee4', fail: 'n_sohee4' },
     },
     c_sohee4: { type: 'clip', src: 'media/clips/sohee4.mp4', next: 'e_good_sohee1' },
     n_sohee4: {

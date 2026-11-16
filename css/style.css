@@ -514,3 +514,8 @@ html:not(.dev) #ph .ph-label { display: none; }
 #ending .end-fx { z-index: 3; }
 #ending .end-fx i { opacity: .7; }
 #ending .end-fx i.drop { font-size: calc(17px * var(--s)); opacity: .55; }
+
+/* 세로 영상: 화면 가득 */
+#stage.clip-full[data-type="clip"] #video { top: 0; height: 100%; object-fit: cover; box-shadow: none; }
+#stage.clip-full[data-type="clip"] #clip-bg { display: none; }
+#stage.clip-full #sub { top: auto; bottom: calc(15% + var(--safe-b)); }
