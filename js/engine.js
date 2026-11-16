@@ -1142,6 +1142,7 @@
 
   /* ---------- 엔딩 ---------- */
   function showEnding(id, sc, opts = {}) {
+    const good = sc.kind === 'good';   // 엔딩 종류: 'good' 이 아니면 배드 엔딩
     const unlocked = new Set(store.get(ENDINGS_KEY, []));
     unlocked.add(id);
     store.set(ENDINGS_KEY, [...unlocked]);
@@ -1166,7 +1167,8 @@
       endingEl.innerHTML = `
         <div class="end-card">
           <div class="end-head">
-            <img class="end-logo" src="media/images/theend.png" alt="The End">
+            <img class="end-art ${good ? 'good' : 'bad'}" src="media/images/end_${good ? 'good' : 'bad'}.png" alt="${good ? 'GOOD END' : 'BAD END'}">
+            <span class="end-kind ${good ? 'good' : 'bad'}">${good ? 'GOOD ENDING' : 'BAD ENDING'}</span>
             <span class="end-count">ENDING ${pad2(ENDING_IDS.indexOf(id) + 1)} / ${pad2(ENDING_IDS.length)}</span>
           </div>
           <div class="end-main">
@@ -1198,6 +1200,17 @@
           <button class="vc-stop" data-act="stop"><b>»</b>그만 듣기</button>` : ''}
         </div>`;
       const card = $('.end-card', endingEl);
+      // 굿 엔딩: 컨페티 / 배드 엔딩: 눈물이 뚝뚝
+      const fx = document.createElement(good ? 'canvas' : 'div');
+      fx.className = 'end-fx';
+      endingEl.prepend(fx);
+      if (good) Confetti.start(fx);
+      else fx.innerHTML = Array.from({ length: 14 }, (_, k) => {
+        // 😢 는 글자를 가리지 않게 양옆으로, 작은 💧 는 어디든
+        const face = k % 2 === 0;
+        const x = face ? (Math.random() < .5 ? Math.random() * 16 : 80 + Math.random() * 16) : Math.random() * 96;
+        return `<i class="${face ? '' : 'drop'}" style="left:${x.toFixed(1)}%;--d:${(3.4 + Math.random() * 2.6).toFixed(2)}s;--w:${(-Math.random() * 6).toFixed(2)}s;--s:${(0.8 + Math.random() * .5).toFixed(2)}">${face ? '😢' : '💧'}</i>`;
+      }).join('');
 
       const barEls = [...card.querySelectorAll('.wave i')];
       const durEl = $('.vc-dur', card);

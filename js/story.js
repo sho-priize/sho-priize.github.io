@@ -639,8 +639,8 @@ window.STORY = {
     c_sohee3: {
       type: 'clip', src: 'media/clips/sohee3.mp4',
       route: { title: '응급상황!', thumb: 'media/images/thumbs/c_sohee3.jpg' },
-      // 영상 끝 장면에서 버튼 → 1.5초 안에 10번
-      mash: { text: '응급상황! 빠르게 연타하세요!', taps: 10, window: 1.5, success: 'c_sohee4', fail: 'n_sohee4' },
+      // 영상 끝 장면에서 버튼 → 2초 안에 7번
+      mash: { text: '응급상황! 빠르게 연타하세요!', taps: 7, window: 2, success: 'c_sohee4', fail: 'n_sohee4' },
     },
     c_sohee4: { type: 'clip', src: 'media/clips/sohee4.mp4', next: 'e_good_sohee1' },
     n_sohee4: {
@@ -666,6 +666,7 @@ window.STORY = {
     e_good_sohee1: {
       type: 'ending',
       title: '나의 사랑을 받아줘!',
+      kind: 'good',   // 굿 엔딩 (나머지는 배드 엔딩)
       route: { thumb: 'media/images/thumbs/e_good_sohee1.jpg' },
       desc: '민첩한 임기응변으로 깜짝파티를 성공했습니다!',
       bg: ['#4a3a1a', '#0c0a04'],

@@ -497,3 +497,20 @@ html:not(.dev) #ph .ph-label { display: none; }
 @keyframes mashIn { from { opacity: 0; } }
 @keyframes mashPulse { to { transform: scale(1.04); } }
 @keyframes mashHit { 50% { transform: scale(.92); } }
+
+/* 굿/배드 엔딩 그림 + 효과 */
+#ending .end-art { width: min(64%, 260px); max-height: 30cqh; object-fit: contain; }
+#ending .end-art.good { filter: drop-shadow(0 0 18px rgba(255,150,80,.45)); }
+#ending .end-art.bad { width: min(46%, 190px); filter: drop-shadow(0 10px 24px rgba(0,0,0,.6)) saturate(.9); animation: badWobble 3.2s ease-in-out infinite; }
+@keyframes badWobble { 50% { transform: rotate(-3deg) translateY(2px); } }
+#ending .end-kind { font: 800 12px/1 var(--mono); letter-spacing: .26em; }
+#ending .end-kind.good { color: #ffd84d; }
+#ending .end-kind.bad { color: #8fb4ff; }
+#ending .end-fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; overflow: hidden; }
+#ending .end-fx i { position: absolute; top: -10%; font-size: calc(26px * var(--s)); font-style: normal; opacity: .85;
+  animation: tearFall var(--d) linear var(--w) infinite; }
+@keyframes tearFall { from { transform: translateY(0) rotate(-8deg); } to { transform: translateY(125cqh) rotate(8deg); } }
+#ending .listening ~ .end-fx, #ending:has(.listening) .end-fx { opacity: .35; }
+#ending .end-fx { z-index: 3; }
+#ending .end-fx i { opacity: .7; }
+#ending .end-fx i.drop { font-size: calc(17px * var(--s)); opacity: .55; }
