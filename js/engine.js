@@ -193,6 +193,10 @@
     clearCtas();
     // 직전 폰 화면 위로 배너만 내려오는 문자 장면
     if (isPhone(currentId) && sc.type === 'chat' && sc.notify?.overlay && !opts.atChoice) opts = { ...opts, keepScreen: true, instant: true };
+    // 같은 대화방에서 이어지는 문자 장면: 화면 전환 없이 그 자리에서 메시지만 이어서
+    const cur = SC[currentId];
+    if (cur?.type === 'chat' && sc.type === 'chat' && !opts.atChoice && (cur.thread || currentId) === (sc.thread || id) && !sc.notify)
+      opts = { ...opts, keepScreen: true, instant: true, cont: true };
     if (!opts.instant) {
       // 폰 → 폰 장면은 검은 화면 없이 폰 안에서만 전환
       if (isPhone(currentId) && PHONE_TYPES.has(sc.type)) { pscreen.classList.add('swap'); await wait(220); }
@@ -886,7 +890,15 @@
       };
     };
 
-    if (sc.notify && !instant) notify(); else openChat(false);
+    const contBody = opts.cont && $('.v-chat .m-body', pscreen);
+    if (contBody) {
+      // 이어서: 이미 있는 화면에 이번 장면 메시지만 추가
+      const last = [...hist].reverse().find(Boolean);
+      const lastList = last ? (last.scene ? SC[last.scene].msgs || [] : [last]) : [];
+      const prev = lastList.length ? lastList[lastList.length - 1][0] : null;
+      hist.push({ scene: id });
+      run(contBody, prev);
+    } else if (sc.notify && !instant) notify(); else openChat(false);
     cleanup = () => {
       alive = false; timers.forEach(clearTimeout); closeChoice();
       if (tapNext) pstage.removeEventListener('click', tapNext);
@@ -1232,9 +1244,10 @@
     while (typeof id === 'string' && SC[id] && !seen.has(id)) {
       seen.add(id);
       const sc = SC[id];
-      if (sc.choice) return { kind: 'choice', id };
+      // 루트에는 고를 게 2개 이상인 선택지만 (버튼 하나짜리는 건너뜀)
+      if (sc.choice && sc.choice.options.length >= 2) return { kind: 'choice', id };
       if (sc.type === 'ending') return { kind: 'ending', id };
-      id = sc.answer || sc.next;
+      id = sc.choice ? sc.choice.options[0].next : sc.answer || sc.next;
     }
     return { kind: 'open' };
   }
@@ -1247,8 +1260,12 @@
       if (byKey.has(key)) return byKey.get(key);   // 여러 길이 같은 장면으로 모이는 경우
       const n = add({ key, kind: target.kind, id: target.id, depth, parentKey, children: [] });
       if (target.kind === 'choice') {
+        const picked = Route.picked(target.id);
         SC[target.id].choice.options.forEach((o, i) => {
-          const child = make(followRoute(o.next), depth + 1, key, `${key}#${i}`);
+          // 아직 안 고른 선택지는 어디로 이어지는지 숨김 (엔딩 스포 방지) → '?' 칸만
+          const child = picked.includes(i)
+            ? make(followRoute(o.next), depth + 1, key, `${key}#${i}`)
+            : make({ kind: 'open' }, depth + 1, key, `${key}#${i}`);
           n.children.push(child);
           edges.push({ from: n, to: child, label: o.text, scene: target.id, opt: i });
         });
@@ -1261,7 +1278,7 @@
     edges.push({ from: root, to: first, label: null });
 
     // 가로 배치: 잎 노드를 왼쪽부터 나란히, 부모는 자식들의 가운데 (깊이는 위→아래)
-    const SLOT = { card: 42, small: 16 };   // cqw
+    const SLOT = { card: 42, small: 22 };   // cqw
     let cursor = 0;
     const place = (n) => {
       const own = n.children.filter((c) => c.parentKey === n.key);

@@ -398,7 +398,7 @@ window.STORY = {
     /* ── 은석 갈래 ── */
     n_eunseok1: {
       type: 'narration',
-      route: { title: '은석에게 뭘 의뢰할까' },
+      route: { title: '은석에게 뭘 의뢰할까', thumb: 'media/images/thumbs/n_eunseok1.jpg' },
       lines: [
         '얼마나 감동받았는지 감도 안 온다.',
         '쇼타로를 감동시킬 계획이 필요한데...',
@@ -452,7 +452,7 @@ window.STORY = {
     p_eunseok4: {
       type: 'chat', thread: 'eunseok',
       title: '은석', icon: '은',
-      route: { title: '고마워? 사랑해?' },
+      route: { title: '고마워? 사랑해?', thumb: 'media/images/thumbs/p_eunseok4.jpg' },
       msgs: [
         ['은석', '아 마지막 고민'],
         ['은석', '고마워 사랑해 중에 뭐라고 하지?'],
@@ -491,6 +491,7 @@ window.STORY = {
     e_bad1: {
       type: 'ending',
       title: '준비 실패',
+      route: { thumb: 'media/images/thumbs/e_bad1.jpg' },
       desc: '그래도 쇼타로는 즐거웠을지도?',
       bg: ['#4a2a1a', '#0c0806'],
       voice: {
