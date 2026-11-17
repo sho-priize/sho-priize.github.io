@@ -201,6 +201,14 @@
     };
   })();
   const vibrate = (p) => { try { navigator.vibrate?.(p); } catch {} };
+  // 연타하는 화면: 아이폰에서 두 번 탭하면 확대되는 것 막기 (손가락 떼는 순간의 기본 동작 취소 → 확대·클릭 지연 없음)
+  const noZoom = (el) => {
+    const stop = (e) => { if (e.cancelable) e.preventDefault(); };
+    el.addEventListener('touchend', stop, { passive: false });
+    el.addEventListener('dblclick', stop);
+    el.addEventListener('gesturestart', stop);
+    el.addEventListener('touchmove', (e) => { if (e.touches.length > 1 || e.scale !== undefined && e.scale !== 1) stop(e); }, { passive: false });
+  };
 
   /* ---------- 장면 전환 ---------- */
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -416,6 +424,7 @@
     el.className = 'mash';
     el.innerHTML = `<button class="mash-btn"><b>${esc(m.text || '빠르게 연타하세요!')}</b><span class="mash-n">0 / ${need}</span></button><i class="mash-bar"><s></s></i>`;
     stage.append(el);
+    noZoom(el);
     const btn = $('.mash-btn', el), nEl = $('.mash-n', el), bar = $('.mash-bar s', el);
     let n = 0, done = false;
     vibrate(200);
@@ -1351,6 +1360,7 @@
       <i class="ms-dark"></i>
       <div class="ms-flash"></div>`;
     stage.append(el);
+    noZoom(el);
     const q = (s) => $(s, el);
     const play = q('.ms-play'), stick = q('.ms-stick'), title = q('.ms-title'), cta = q('.ms-cta');
     const timeEl = q('.ms-time b'), bar = q('.ms-bar s'), flash = q('.ms-flash'), heat = q('.ms-heat s');

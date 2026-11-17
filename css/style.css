@@ -547,7 +547,7 @@ html:not(.dev) #ph .ph-label { display: none; }
 #ending .end-art.bad { aspect-ratio: 600 / 590; }
 
 /* ── 10초 미션 (혼자 준비한다) ── */
-.mission { position: absolute; inset: 0; z-index: 12; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none;
+.mission { position: absolute; inset: 0; z-index: 12; overflow: hidden; touch-action: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;
   background: radial-gradient(120% 80% at 50% 45%, #3a2416 0%, #1a0e08 55%, #080403 100%); animation: mashIn .25s ease both; }
 .mission img { pointer-events: none; -webkit-user-drag: none; }
 .ms-top { position: absolute; top: calc(58px + var(--safe-t)); left: 50%; transform: translateX(-50%); width: min(78cqw, 320px);
