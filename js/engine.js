@@ -1693,7 +1693,7 @@
       if (good) Confetti.start($('.end-fx', endingEl));
       Sound.shutter(); vibrate(40);
       const intro = $('.pola-intro', endingEl);
-      introT = setTimeout(showCard, 3900);   // 3초 동안 진해진 뒤 카드로
+      introT = setTimeout(showCard, 5600);   // 사진이 다 드러난 뒤 카드로
       intro.onclick = () => { if (!introT) return; clearTimeout(introT); intro.classList.add('skip'); showCard(); };
     } else if (sc.src) {
       const check = () => {

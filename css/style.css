@@ -618,14 +618,13 @@ html:not(.dev) #ph .ph-label { display: none; }
 .pi-flash { position: absolute; inset: 0; background: #fff; opacity: 0; animation: piFlash .6s ease-out both; }
 @keyframes piFlash { 0% { opacity: .85; } 100% { opacity: 0; } }
 .pi-photo { position: relative; width: min(82cqw, 360px); rotate: -2deg; filter: drop-shadow(0 16px 30px rgba(0,0,0,.55));
-  animation: piIn .35s cubic-bezier(.2,1.2,.4,1) both; }
+  animation: piIn .7s cubic-bezier(.2,1.2,.4,1) both; }
 .pi-photo img { display: block; width: 100%; }
-/* 찍힌 직후: 프레임 안 사진이 10% → (불규칙하게) → 3초 안에 90% 진해짐. 필름 면 색을 덮었다 걷는 방식 */
-.pi-dev { position: absolute; left: 6.7%; top: 8.36%; width: 71.2%; height: 84.36%; background: #24262b; opacity: .9;
-  animation: piDev 3s linear .3s forwards; transition: opacity .35s; }
-@keyframes piIn { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
-@keyframes piDev { 0% { opacity: .9; } 12% { opacity: .8; } 20% { opacity: .86; } 33% { opacity: .62; } 42% { opacity: .7; }
-  55% { opacity: .45; } 63% { opacity: .5; } 76% { opacity: .27; } 84% { opacity: .32; } 100% { opacity: .1; } }
+/* 아무것도 안 찍힌 필름 면 → 천천히 걷히며 사진이 드러남 */
+.pi-dev { position: absolute; left: 6.7%; top: 8.36%; width: 71.2%; height: 84.36%; background: linear-gradient(160deg, rgba(46,49,56,.96), rgba(34,37,43,.96));
+  -webkit-backdrop-filter: blur(8px) sepia(.5); backdrop-filter: blur(8px) sepia(.5); animation: piDev 4.4s cubic-bezier(.5,0,.6,1) .5s forwards; }
+@keyframes piIn { from { opacity: 0; transform: translateY(24px) scale(.94); } to { opacity: 1; transform: none; } }
+@keyframes piDev { 0% { opacity: 1; } 35% { opacity: .85; } 100% { opacity: 0; } }
 .pola-intro.skip .pi-dev { animation: none; opacity: 0; transition: opacity .3s; }
 .pola-intro.flying .pi-flash { display: none; }
 .pola-intro.flying .pi-dev { animation: none; opacity: 0; }
