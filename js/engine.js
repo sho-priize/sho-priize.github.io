@@ -607,8 +607,32 @@
         b.className = 'ur-b me pop'; b.innerHTML = '<span></span>';
         b.firstChild.textContent = input.value.trim();
         $('.ur-body', sheet).append(b);
+        hist?.push(['me', b.textContent]);
+        sheet.classList.add('sent');
         input.value = ''; sheet.classList.remove('typed');
         Sound.send();
+        input.blur();
+        // 보낸 뒤 원빈 답장 받기 (replies) → 그다음 장면
+        (async () => {
+          const body = $('.ur-body', sheet), pause = (ms) => new Promise((r) => setTimeout(r, ms));
+          await pause(600);
+          for (const text of U.replies || []) {
+            if (my !== token) return;
+            const ty = document.createElement('div');
+            ty.className = 'ur-b them typing pop'; ty.innerHTML = '<span><i></i><i></i><i></i></span>';
+            body.append(ty);
+            await pause(Math.min(1300, 550 + text.length * 45));
+            if (my !== token) return;
+            ty.remove();
+            const r = document.createElement('div');
+            r.className = 'ur-b them pop'; r.innerHTML = '<span></span>'; r.firstChild.textContent = text;
+            body.append(r); hist?.push([from, text]); Sound.pop();
+            await pause(450);
+          }
+          await pause(900);
+          if (my === token) go(resolve(U.success));
+        })();
+        return;
       } else {
         Sound.buzz(); vibrate([200, 80, 200]);
         sheet.classList.add('late'); wrap.classList.add('late');
@@ -1045,7 +1069,7 @@
       let prev = null;
       const dateRow = (label) => { const d = document.createElement('div'); d.className = 'm-ts m-date'; d.textContent = label; return d; };
       for (const e of hist) {
-        if (e.scene && SC[e.scene].dateLabel) { body.append(dateRow(SC[e.scene].dateLabel)); prev = null; }
+        if (e.scene && SC[e.scene].dateLabel) { body.append(dateRow(SC[e.scene].dateLabel === 'now' ? nowLabel() : SC[e.scene].dateLabel)); prev = null; }
         const list = e.scene ? SC[e.scene].msgs || [] : [e];
         for (const [who, text] of list) { body.append(bubble(who, text, prev)); prev = who; }
       }
@@ -1055,7 +1079,7 @@
       if (window.ResizeObserver) new ResizeObserver(stick).observe(body);
       requestAnimationFrame(stick);
       hist.push({ scene: id });
-      if (sc.dateLabel) { body.append(dateRow(sc.dateLabel)); prev = null; }
+      if (sc.dateLabel) { body.append(dateRow(sc.dateLabel === 'now' ? nowLabel() : sc.dateLabel)); prev = null; }
       run(body, prev);
     };
 
@@ -1243,6 +1267,11 @@
   }
 
   /* 폰 시계 / 날짜 */
+  // 아이폰 문자 시간 구분: '오늘 오후 9:41'
+  function nowLabel() {
+    const d = new Date(), h = d.getHours();
+    return `오늘 ${h < 12 ? '오전' : '오후'} ${h % 12 || 12}:${pad2(d.getMinutes())}`;
+  }
   function clockText() {
     if (CFG.phone?.clock) return CFG.phone.clock;
     const d = new Date();
