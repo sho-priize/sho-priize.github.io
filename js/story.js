@@ -600,7 +600,7 @@ window.STORY = {
     },
 
     // 열받게 하기 → 실패
-    n_sohee2: { type: 'narration', lines: ['뭔가 믿음이 간다..'], next: 'c_sohee2' },
+    n_sohee2: { type: 'narration', lines: ['뭔가 믿음이 간다..', '소희의 계획을 지켜보자'], next: 'c_sohee2' },
     c_sohee2: { type: 'clip', src: 'media/clips/sohee2.mp4', next: 'n_sohee2b' },
     n_sohee2b: {
       type: 'narration',

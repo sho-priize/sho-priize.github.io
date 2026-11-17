@@ -185,7 +185,7 @@ html:not(.dev) #ph .ph-label { display: none; }
 
 /* ---------- 클립 탭 → 일시정지 / 진행 바 ---------- */
 #tapzone { position: absolute; inset: 0; z-index: 4; display: none; cursor: pointer; }
-#stage[data-type="clip"] #tapzone { display: block; }
+#stage[data-type="clip"] #tapzone, #stage.ctl #tapzone { display: block; }
 #pause-ind {
   position: absolute; z-index: 6; left: 50%; top: calc(var(--vt) + var(--vh) / 2); transform: translate(-50%, -50%) scale(.9);
   display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
@@ -200,7 +200,7 @@ html:not(.dev) #ph .ph-label { display: none; }
   display: none; align-items: center; cursor: pointer; touch-action: none;
   opacity: 0; pointer-events: none; transition: opacity .25s;
 }
-#stage[data-type="clip"] #scrub:not([hidden]) { display: flex; }
+#stage[data-type="clip"] #scrub:not([hidden]), #stage.ctl #scrub:not([hidden]) { display: flex; }
 #scrub.active { opacity: 1; pointer-events: auto; }
 #scrub .sb-track { position: relative; flex: 1; height: 4px; margin: 0 14px; background: rgba(255,255,255,.25); border-radius: 4px; }
 #scrub .sb-fill { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--f, 0) * 100%); background: var(--accent); border-radius: 4px; }
@@ -535,3 +535,13 @@ html:not(.dev) #ph .ph-label { display: none; }
 .r-node.small.back span { white-space: normal; text-align: center; max-width: 20cqw; line-height: 1.25; }
 .r-node.small.back i { font-size: 16px; }
 .r-chip.tree { transform: translate(-50%, -100%); }
+
+/* 화면 가득 영상(세로 클립·영상통화): 일시정지 표시는 화면 가운데, 진행 바는 화면 아래 */
+#stage.clip-full #pause-ind, #stage[data-type="call"] #pause-ind { top: 50%; }
+#stage.clip-full #scrub { top: auto; bottom: calc(26px + var(--safe-b)); }
+#stage[data-type="call"] #scrub { top: auto; bottom: calc(var(--safe-b) + 14px); right: calc(27cqw + 18px); }
+#stage[data-type="call"] #tapzone { z-index: 5; }
+/* 엔딩 그림 자리를 미리 잡아둠 → 그림이 늦게 떠도 화면이 출렁이지 않게 */
+#ending .end-art { height: auto; }
+#ending .end-art.good { aspect-ratio: 722 / 477; }
+#ending .end-art.bad { aspect-ratio: 600 / 590; }

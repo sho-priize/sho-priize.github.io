@@ -480,7 +480,15 @@
     const bgTimer = sc.src ? setInterval(() => {
       if (video.readyState >= 2) { try { bgx.drawImage(video, 0, 0, bgc.width, bgc.height); } catch {} }
     }, 1200) : null;   // 자주 그리면 폰에서 영상·소리가 버벅여서 가끔만 (배경은 흐려서 티 안 남)
+    const ctl = clipControls(sc, P);
+    const stop = runClip(id, sc, P, opts, { onTick: ctl.onTick, onChoice: ctl.choosing });
+    cleanup = () => { stop(); ctl.cleanup(); clearInterval(bgTimer); };
+  }
+
+  /* 영상 조작: 탭 → 일시정지/재생, 진행 바 끌어서 이동 (일반 클립·영상통화 공용) */
+  function clipControls(sc, P) {
     let choosing = false, dragging = false, wasPaused = false, hideT;
+    stage.classList.add('ctl');
     const showPaused = (on) => pauseInd.classList.toggle('on', on);
     const fill = $('.sb-fill', scrub), timeEl = $('.sb-time', scrub), track = $('.sb-track', scrub);
     // 진행 바: 탭/일시정지/조작 중에는 굵게 + 시간 표시, 평소엔 얇게
@@ -491,13 +499,11 @@
       fill.style.setProperty('--f', Math.min(1, t / d));
       timeEl.textContent = `${mmss(Math.floor(t))} / ${mmss(Math.floor(d))}`;
     };
-    const stop = runClip(id, sc, P, opts, { onTick, onChoice: () => { choosing = true; showPaused(false); } });
     const toggle = () => {
       wake();
       if (choosing || !sc.src) return;   // 선택지 대기 중에는 멈추지 않음
       if (P.paused()) { P.resume(); showPaused(false); } else { P.pause(); showPaused(true); }
     };
-    // 진행 바 끌어서 이동
     const seekAt = (e) => {
       const r = track.getBoundingClientRect(), d = P.end();
       if (!isFinite(d)) return;
@@ -523,11 +529,15 @@
     tapzone.onclick = toggle;
     window.addEventListener('keydown', key);
     scrub.hidden = !sc.src;
-    cleanup = () => {
-      stop(); clearTimeout(hideT); clearInterval(bgTimer);
-      tapzone.onclick = null; scrub.onpointerdown = scrub.onpointermove = scrub.onpointerup = scrub.onpointercancel = null;
-      scrub.classList.remove('active'); showPaused(false);
-      window.removeEventListener('keydown', key);
+    return {
+      onTick,
+      choosing: () => { choosing = true; showPaused(false); },
+      cleanup() {
+        clearTimeout(hideT); stage.classList.remove('ctl');
+        tapzone.onclick = null; scrub.onpointerdown = scrub.onpointermove = scrub.onpointerup = scrub.onpointercancel = null;
+        scrub.classList.remove('active'); showPaused(false);
+        window.removeEventListener('keydown', key);
+      },
     };
   }
 
@@ -711,7 +721,11 @@
         };
         // 영상이 실제로 나오기 전까지는 "연결 중…" 상태 유지
         if (sc.src) video.addEventListener('playing', startClock, { once: true }); else startClock();
-        clipCleanup = runClip(id, sc, makePlayer(sc), opts, { layout: 'side', onEnd: () => end(started ?? performance.now()) });
+        const CP = makePlayer(sc);
+        const ctl = sc.src ? clipControls(sc, CP) : null;
+        const stopClip = runClip(id, sc, CP, opts, { layout: 'side', onTick: ctl?.onTick, onChoice: ctl?.choosing,
+          onEnd: () => { ctl?.cleanup(); end(started ?? performance.now()); } });
+        clipCleanup = () => { stopClip(); ctl?.cleanup(); };
       }, instant ? 0 : 700);
     };
 
@@ -1180,7 +1194,12 @@
     }).join('');
 
     let voiceStop = () => {};
-    const showCard = () => {
+    // 그림을 먼저 준비(디코딩)해 두고 카드를 한 번에 표시
+    const artImg = new Image(); artImg.src = `media/images/end_${good ? 'good' : 'bad'}.png`;
+    const artReady = Promise.race([artImg.decode?.().catch(() => {}) ?? Promise.resolve(), wait(1500)]);
+    const showCard = async () => {
+      await artReady;
+      if (!endingEl.isConnected || currentId !== id) return;
       endingEl.innerHTML = `
         <div class="end-card">
           <div class="end-head">
@@ -1841,6 +1860,7 @@
   addEventListener('hashchange', () => fromHash(false));
   // 폰트가 준비된 뒤 첫 화면 표시 (기본 글꼴로 잠깐 보이는 것 방지)
   Preload.add(CFG.titleMedia); Preload.add(CFG.phone?.selfImage);
+  ['media/images/end_good.png', 'media/images/end_bad.png', 'media/images/voicephoto.jpg'].forEach(Preload.add);   // 엔딩 그림은 처음에 받아둠
   Promise.race([document.fonts?.ready, wait(2500)]).then(() => {
     fromHash(true);
     if (!gate) requestAnimationFrame(() => fade.classList.remove('on'));
