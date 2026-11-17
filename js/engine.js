@@ -1329,15 +1329,17 @@
   }
 
   /* ---------- 10초 미션 (혼자 준비한다) ----------
-     ① 성냥갑에 성냥 연타(1초 안에 6번) → 불 ② 불붙은 성냥을 초 심지에 3초 대기(떼면 처음부터) ③ 스위치 내려서 불 끄기 */
+     ① 성냥갑에 성냥 연타(1초 안에 taps번) → 불 ② 불붙은 성냥을 초 심지에 3초 대기(떼면 처음부터) ③ 스위치 내려서 불 끄기 */
   function showMission(id, sc, opts) {
-    const my = token, LIMIT = (sc.time || 10) * 1000;
+    const my = token, LIMIT = (sc.time || 10) * 1000, TAPS = sc.taps || 6, HOLD = (sc.hold || 3) * 1000;
     state.checkpoint = { id, flags: { ...state.flags }, path: state.path.slice(), threads: JSON.parse(JSON.stringify(state.threads)) };
     Route.snap(id, state.checkpoint);
     video.hidden = true; ph.hidden = true;
     const el = document.createElement('div');
     el.className = 'mission';
     el.innerHTML = `
+      <div class="ms-sw"><img class="up" src="${MI}switch_up.jpg" alt=""><img class="down" src="${MI}switch_down.jpg" alt=""></div>
+      <i class="ms-pull">↓</i>
       <div class="ms-top">
         <div class="ms-steps"><i class="on"></i><i></i><i></i></div>
         <div class="ms-time"><b>${(LIMIT / 1000).toFixed(1)}</b></div>
@@ -1349,9 +1351,6 @@
         <img class="ms-candle off" src="${MI}candle_off.jpg" alt="">
         <img class="ms-candle on" src="${MI}candle_on.jpg" alt="">
         <i class="ms-target"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17"/><circle class="p" cx="20" cy="20" r="17"/></svg></i>
-        <img class="ms-switch up" src="${MI}switch_up.jpg" alt="">
-        <img class="ms-switch down" src="${MI}switch_down.jpg" alt="">
-        <i class="ms-pull">↓</i>
         <div class="ms-stick"><img class="off" src="${MI}stick_off.png" alt=""><img class="on" src="${MI}stick_on.png" alt=""></div>
         <div class="ms-sparks"></div>
         <div class="ms-heat"><s></s></div>
@@ -1384,13 +1383,14 @@
       const left = Math.max(0, LIMIT - (performance.now() - t0));
       timeEl.textContent = (left / 1000).toFixed(1);
       bar.style.transform = `scaleX(${left / LIMIT})`;
-      el.classList.toggle('hurry', left < 3000);
+      const HURRY = Math.min(3000, LIMIT * .35);
+      el.classList.toggle('hurry', left < HURRY);
       const sec = Math.ceil(left / 1000);
-      if (sec <= 3 && sec !== lastSec && left > 0) { lastSec = sec; Sound.tick(); }
+      if (sec <= HURRY / 1000 && sec !== lastSec && left > 0) { lastSec = sec; Sound.tick(); }
       if (step === 1) {   // 성냥 열기: 최근 1초 동안 친 횟수
         const now = performance.now();
         while (taps.length && now - taps[0] > 1000) taps.shift();
-        heat.style.transform = `scaleX(${Math.min(1, taps.length / 6)})`;
+        heat.style.transform = `scaleX(${Math.min(1, taps.length / TAPS)})`;
       }
       if (step === 2) holdTick();
       if (left <= 0) finish(false);
@@ -1424,7 +1424,7 @@
       }
       const now = performance.now();
       while (taps.length && now - taps[0] > 1000) taps.shift();
-      if (taps.length >= 6) {
+      if (taps.length >= TAPS) {
         step = 1.5; el.classList.add('lit'); Sound.ignite(); vibrate(60);
         heat.style.transform = 'scaleX(1)';
         t0 += 600;   // 넘어가는 연출 시간은 빼 줌
@@ -1434,9 +1434,12 @@
 
     // ── ② 초에 불 붙이기 (드래그)
     let drag = null, holdMs = 0, holdLast = 0, near = false;
-    const home = () => { stick.style.transition = 'translate .35s cubic-bezier(.3,1.4,.5,1)'; stick.style.translate = ''; };
+    const home = () => { stick.style.transition = 'translate .35s cubic-bezier(.3,1.4,.5,1), rotate .3s ease'; stick.style.translate = ''; };
     // 위치는 놀이판 기준 cqw 로 계산 (CSS 와 같은 숫자): 성냥 불꽃 기본 위치 → 끈 만큼 이동, 심지 위치
-    const FLAME = { x: 74.5, y: 59 }, WICK = { x: 51.7, y: 20.2 };
+    // 잡으면 성냥을 손으로 든 것처럼 아래쪽(손잡이)을 축으로 대각선으로 기울임 → 불꽃 위치도 그만큼
+    const TILT = -50 * Math.PI / 180, GRIP = { x: 74.5, y: 118 }, LEN = 59;
+    const FLAME = { x: GRIP.x + LEN * Math.sin(TILT), y: GRIP.y - LEN * Math.cos(TILT) }, WICK = { x: 51.7, y: 20.2 };
+    const candleOn = q('.ms-candle.on');
     function holdTick() {
       const now = performance.now();
       if (drag) {
@@ -1446,10 +1449,13 @@
       if (near) holdMs += now - (holdLast || now); else holdMs = 0;
       holdLast = now;
       el.classList.toggle('near', near);
-      ring.style.strokeDashoffset = RING * (1 - Math.min(1, holdMs / 3000));
-      if (holdMs >= 3000) {
+      ring.style.strokeDashoffset = RING * (1 - Math.min(1, holdMs / HOLD));
+      // 대고 있는 동안 심지에 불이 조금씩 옮겨붙음
+      candleOn.style.opacity = near ? (Math.min(1, holdMs / HOLD) * .75 * (.85 + Math.random() * .15)).toFixed(3) : '';
+      if (holdMs >= HOLD) {
         step = 2.5; el.classList.add('candle-lit'); Sound.ignite(); vibrate(60);
-        drag = null; el.classList.remove('near');
+        candleOn.style.opacity = '';
+        drag = null; el.classList.remove('near', 'held');
         t0 += 600;
         later(step3, 600);
       }
@@ -1464,28 +1470,34 @@
     function step3() {
       setStep(3);
       say('3단계 · 불을 꺼주세요!', '스위치를 잡고 <b>아래로 쭉</b> 내려요');
+      // 화면을 꽉 채운 스위치 사진(cover)에서 스위치 손잡이 위치 → 화살표
+      const r = el.getBoundingClientRect(), k = Math.max(r.width / 452, r.height / 602);
+      const ox = (r.width - 452 * k) / 2, oy = (r.height - 602 * k) / 2;
+      const pull = q('.ms-pull');
+      pull.style.left = `${ox + .545 * 452 * k + 14}px`; pull.style.top = `${oy + .48 * 602 * k}px`;
     }
     const lightsOff = () => {
       step = 3.5; el.classList.add('off'); Sound.flick(); vibrate(30);
       finish(true);
-      later(() => { el.classList.add('dark'); big('준비 완료!', 'good'); }, 300);
+      later(() => { el.classList.add('dark'); big('준비 완료!', 'good'); }, 450);
     };
 
     // ── 입력
-    play.addEventListener('pointerdown', (e) => {
+    el.addEventListener('pointerdown', (e) => {
       if (over || !t0) return;
       e.preventDefault();
       if (step === 1) strike();
       else if (step === 2) {
         drag = { x: e.clientX, y: e.clientY, dx: 0, dy: 0 }; holdMs = 0; holdLast = performance.now();
-        stick.style.transition = 'none'; stick.getAnimations().forEach((a) => a.cancel());
-        try { play.setPointerCapture(e.pointerId); } catch {}
+        stick.style.transition = 'rotate .2s ease'; stick.getAnimations().forEach((a) => a.cancel());
+        el.classList.add('held');
+        try { el.setPointerCapture(e.pointerId); } catch {}
       } else if (step === 3) {
         pull = { y: e.clientY };
-        try { play.setPointerCapture(e.pointerId); } catch {}
+        try { el.setPointerCapture(e.pointerId); } catch {}
       }
     });
-    play.addEventListener('pointermove', (e) => {
+    el.addEventListener('pointermove', (e) => {
       if (step === 2 && drag) {
         drag.dx = e.clientX - drag.x; drag.dy = e.clientY - drag.y;
         stick.style.translate = `${drag.dx}px ${drag.dy}px`;
@@ -1497,11 +1509,11 @@
       }
     });
     const up = () => {
-      if (step === 2 && drag) { drag = null; holdMs = 0; home(); }
+      if (step === 2 && drag) { drag = null; holdMs = 0; el.classList.remove('held', 'near'); candleOn.style.opacity = ''; home(); }
       if (step === 3) { pull = null; q('.ms-pull').style.removeProperty('--dy'); }
     };
-    play.addEventListener('pointerup', up);
-    play.addEventListener('pointercancel', up);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
 
     // ── 시작
     setStep(1);
@@ -1544,6 +1556,7 @@
       await artReady;
       if (!endingEl.isConnected || currentId !== id) return;
       if (introT) { clearTimeout(introT); introT = null; }
+      const keepFx = $('.end-fx', endingEl);   // 폴라로이드 화면에서 돌던 컨페티는 끊기지 않게 그대로
       endingEl.innerHTML = `
         <div class="end-card">
           <div class="end-head">
@@ -1581,10 +1594,10 @@
         </div>`;
       const card = $('.end-card', endingEl);
       // 굿 엔딩: 컨페티 / 배드 엔딩: 눈물이 뚝뚝
-      const fx = document.createElement(good ? 'canvas' : 'div');
+      const fx = keepFx || document.createElement(good ? 'canvas' : 'div');
       fx.className = 'end-fx';
       endingEl.prepend(fx);
-      if (good) Confetti.start(fx);
+      if (good && !keepFx) Confetti.start(fx);
       else fx.innerHTML = Array.from({ length: 14 }, (_, k) => {
         // 😢 는 글자를 가리지 않게 양옆으로, 작은 💧 는 어디든
         const face = k % 2 === 0;
@@ -1649,11 +1662,13 @@
     let cardTimer, introT = null;
     if (sc.polaroid && !opts.atChoice) {
       // 찰칵! → 폴라로이드가 천천히 나오며 현상 → 엔딩 카드
-      endingEl.innerHTML = `<div class="pola-intro"><i class="pi-flash"></i><i class="pi-slot"></i>
-        <div class="pi-out"><div class="pi-photo"><img src="${sc.polaroid}" alt=""><i class="pi-dev"></i></div></div></div>`;
+      // 엔딩 배경·컨페티 그대로 두고, 빈 폴라로이드 필름에 사진이 천천히 드러남
+      endingEl.innerHTML = `<canvas class="end-fx"></canvas><div class="pola-intro"><i class="pi-flash"></i>
+        <div class="pi-photo"><img src="${sc.polaroid}" alt=""><i class="pi-dev"></i></div></div>`;
+      if (good) Confetti.start($('.end-fx', endingEl));
       Sound.shutter(); vibrate(40);
       const intro = $('.pola-intro', endingEl);
-      introT = setTimeout(() => { intro.classList.add('leave'); introT = setTimeout(showCard, 450); }, 5200);
+      introT = setTimeout(() => { intro.classList.add('leave'); introT = setTimeout(showCard, 450); }, 5600);
       intro.onclick = () => { if (!introT) return; clearTimeout(introT); intro.classList.add('leave'); introT = setTimeout(showCard, 300); };
     } else if (sc.src) {
       const check = () => {

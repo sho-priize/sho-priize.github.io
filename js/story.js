@@ -813,15 +813,17 @@ window.STORY = {
       type: 'narration',
       lines: [
         '앗! 쇼타로의 발걸음이 예상보다 빨랐습니다.',
-        '10초 안에 준비를 마쳐주세요!',
+        '6초 안에 준비를 마쳐주세요!',
       ],
       next: 'm_alone',
     },
-    // 10초 미션: ① 성냥 연타(1초에 6번) ② 성냥을 초 심지에 3초 ③ 스위치 내려서 불 끄기
+    // 미션: ① 성냥 연타(1초에 taps번) ② 성냥을 초 심지에 hold초 ③ 스위치 내려서 불 끄기 — 전부 time초 안에
     m_alone: {
       type: 'mission',
-      time: 10,
-      route: { title: '10초 미션', thumb: 'media/images/thumbs/m_alone.jpg' },
+      time: 6,    // 제한 시간(초)
+      taps: 9,    // 1단계: 1초 안에 몇 번 연타
+      hold: 3,    // 2단계: 심지에 대고 있을 시간(초)
+      route: { title: '6초 미션', thumb: 'media/images/thumbs/m_alone.jpg' },
       success: 'c_alone_good',
       fail: 'n_alone_fail',
     },

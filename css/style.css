@@ -584,9 +584,6 @@ html:not(.dev) #ph .ph-label { display: none; }
 .ms-target svg { width: 100%; height: 100%; rotate: -90deg; overflow: visible; }
 .ms-target circle { fill: none; stroke: rgba(255,255,255,.55); stroke-width: 2.4; stroke-dasharray: 4 4; }
 .ms-target circle.p { stroke: #ffb34d; stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset .1s linear; }
-.ms-switch { left: 18cqw; top: 10cqw; width: 64cqw; border-radius: 14px; opacity: 0; box-shadow: 0 14px 40px rgba(0,0,0,.6); }
-.ms-pull { left: 60cqw; top: 45cqw; font: 900 34px/1 var(--sans); color: #fff; font-style: normal; opacity: 0; z-index: 3;
-  text-shadow: 0 0 12px rgba(255,180,80,.9); translate: 0 var(--dy, 0); }
 .ms-box, .ms-heat, .ms-sparks { opacity: 0; }
 .mission[data-step="1"] .ms-box, .mission[data-step="1"] .ms-heat, .mission[data-step="1"] .ms-sparks { opacity: 1; }
 .mission[data-step="2"] .ms-candle.off { opacity: 1; }
@@ -596,11 +593,6 @@ html:not(.dev) #ph .ph-label { display: none; }
 .mission.candle-lit .ms-candle.on { opacity: 1; }
 .mission.candle-lit .ms-stick, .mission.candle-lit .ms-target { opacity: 0; }
 .mission[data-step="3"] .ms-stick { opacity: 0; }
-.mission[data-step="3"] .ms-switch.up { opacity: 1; }
-.mission[data-step="3"] .ms-pull { opacity: 1; animation: msPull 1s ease-in-out infinite; }
-.mission.off .ms-switch.up { opacity: 0; transition: none; }
-.mission.off .ms-switch.down { opacity: 1; transition: none; }
-.mission.off .ms-pull { opacity: 0; animation: none; }
 @keyframes msPulse { to { transform: translate(-50%, -50%) scale(1.12); } }
 @keyframes msPull { 0%, 100% { transform: translateY(-6px); } 50% { transform: translateY(10px); } }
 .ms-cta { position: absolute; left: 50%; bottom: calc(34px + var(--safe-b)); transform: translateX(-50%); white-space: nowrap; pointer-events: none;
@@ -610,8 +602,6 @@ html:not(.dev) #ph .ph-label { display: none; }
 .ms-cta.in { animation: msCta 1.6s ease-in-out infinite; }
 @keyframes msCta { 0%, 100% { opacity: .75; } 50% { opacity: 1; } }
 .ms-dark { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 5; }
-.mission.off .ms-dark { opacity: .55; }
-.mission.dark .ms-dark { opacity: .92; transition: opacity .6s; }
 .ms-flash { position: absolute; left: 0; right: 0; top: 46%; text-align: center; font: 900 46px/1 var(--sans); color: #ffd84d; opacity: 0; pointer-events: none; z-index: 6;
   text-shadow: 0 4px 24px rgba(0,0,0,.7); }
 .ms-flash.show { animation: msFlash .9s ease both; }
@@ -623,19 +613,19 @@ html:not(.dev) #ph .ph-label { display: none; }
 @keyframes msShake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
 
 /* ── 폴라로이드 엔딩 ── */
-.pola-intro { position: absolute; inset: 0; z-index: 4; background: #0b0806; cursor: pointer; transition: opacity .45s; }
+.pola-intro { position: absolute; inset: 0; z-index: 4; cursor: pointer; transition: opacity .45s; display: grid; place-items: center; }
 .pola-intro.leave { opacity: 0; }
-.pi-flash { position: absolute; inset: 0; background: #fff; opacity: 0; animation: piFlash .7s ease-out both; z-index: 3; }
-@keyframes piFlash { 0% { opacity: 1; } 100% { opacity: 0; } }
-.pi-slot { position: absolute; top: 24cqh; left: 50%; transform: translateX(-50%); width: 86cqw; height: 14px; border-radius: 8px; z-index: 2;
-  background: linear-gradient(#000, #222); box-shadow: 0 1px 0 rgba(255,255,255,.18), 0 6px 18px rgba(0,0,0,.8); }
-.pi-out { position: absolute; top: calc(24cqh + 7px); left: 50%; transform: translateX(-50%); width: 78cqw; height: 75cqh; overflow: hidden; }
-.pi-photo { position: relative; width: 100%; transform: translateY(-101%); animation: piOut 3s cubic-bezier(.35,.1,.3,1) .6s forwards;
-  box-shadow: 0 10px 30px rgba(0,0,0,.6); }
+.pi-flash { position: absolute; inset: 0; background: #fff; opacity: 0; animation: piFlash .6s ease-out both; }
+@keyframes piFlash { 0% { opacity: .85; } 100% { opacity: 0; } }
+.pi-photo { position: relative; width: min(76cqw, 340px); rotate: -2deg; box-shadow: 0 16px 40px rgba(0,0,0,.55);
+  animation: piIn .7s cubic-bezier(.2,1.2,.4,1) both; }
 .pi-photo img { display: block; width: 100%; }
-.pi-dev { position: absolute; left: 4.13%; top: 4.7%; width: 91.74%; height: 78.33%; background: #1b1f2a; animation: piDev 3.2s ease-in 1.8s forwards; }
-@keyframes piOut { to { transform: translateY(0) rotate(-1.5deg); } }
-@keyframes piDev { to { opacity: 0; } }
+/* 아무것도 안 찍힌 필름 면 → 천천히 걷히며 사진이 드러남 */
+.pi-dev { position: absolute; left: 4.13%; top: 4.7%; width: 91.74%; height: 78.33%; background: linear-gradient(160deg, rgba(46,49,56,.96), rgba(34,37,43,.96));
+  -webkit-backdrop-filter: blur(8px) sepia(.5); backdrop-filter: blur(8px) sepia(.5); animation: piDev 4.4s cubic-bezier(.5,0,.6,1) .5s forwards; }
+@keyframes piIn { from { opacity: 0; transform: translateY(24px) scale(.94); } to { opacity: 1; transform: none; } }
+@keyframes piImg { to { filter: none; } }
+@keyframes piDev { 0% { opacity: 1; } 35% { opacity: .85; } 100% { opacity: 0; } }
 #ending .end-art.polaroid { width: min(62%, 250px); aspect-ratio: 872 / 766; rotate: -3deg; box-shadow: 0 12px 30px rgba(0,0,0,.55); }
 
 /* ── 영상 위 문자 알림 + 긴급상황 답장 (원빈) ── */
@@ -684,3 +674,20 @@ html:not(.dev) #ph .ph-label { display: none; }
 .ur-sheet.typed .send { opacity: 1; }
 .ur-sheet.wrong .field { animation: msShake .35s ease; border-color: #ff4b3e; }
 .ur-sheet.late::after { content: '시간 초과…'; position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.7); font: 800 26px/1 var(--sans); color: #ff5a4a; }
+
+/* 미션 수정: 3단계 스위치 사진 화면 가득 / 2단계 성냥 들면 대각선 / 불 끄면 확실히 어둡게 */
+.ms-sw { position: absolute; inset: 0; opacity: 0; transition: opacity .3s; pointer-events: none; }
+.ms-sw img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ms-sw .down { opacity: 0; }
+.ms-sw::after { content: ''; position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,.6), rgba(0,0,0,0) 32%, rgba(0,0,0,0) 78%, rgba(0,0,0,.55)); }
+.mission[data-step="3"] .ms-sw { opacity: 1; }
+.mission[data-step="3"] .ms-play { pointer-events: none; opacity: 0; transition: opacity .25s; }
+.mission.off .ms-sw .up { opacity: 0; }
+.mission.off .ms-sw .down { opacity: 1; }
+.ms-pull { position: absolute; font: 900 40px/1 var(--sans); color: #fff; font-style: normal; opacity: 0; z-index: 3; pointer-events: none;
+  text-shadow: 0 0 6px #000, 0 0 16px rgba(255,140,40,.95); translate: 0 var(--dy, 0); }
+.mission[data-step="3"] .ms-pull { opacity: 1; animation: msPull 1s ease-in-out infinite; }
+.mission.off .ms-pull { opacity: 0; animation: none; }
+.mission.held .ms-stick { rotate: -50deg; }
+.mission.off .ms-dark { opacity: .97; transition: opacity .12s; }
+.mission.dark .ms-dark { opacity: .97; }
