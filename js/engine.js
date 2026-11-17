@@ -1402,6 +1402,7 @@
       if (ok) { Sound.tada(); later(() => go(resolve(sc.success)), 1500); }
       else {
         Sound.buzz(); vibrate([200, 80, 200]);
+        drag = null; pull = null; el.classList.remove('held', 'near');
         el.classList.add('fail'); big('TIME OVER', 'bad');
         later(() => go(resolve(sc.fail)), 1600);
       }
@@ -1424,7 +1425,7 @@
       }
       const now = performance.now();
       while (taps.length && now - taps[0] > 1000) taps.shift();
-      if (taps.length >= TAPS) {
+      if (taps.length >= TAPS && !over) {
         step = 1.5; el.classList.add('lit'); Sound.ignite(); vibrate(60);
         heat.style.transform = 'scaleX(1)';
         t0 += 600;   // 넘어가는 연출 시간은 빼 줌
@@ -1451,7 +1452,7 @@
       ring.style.strokeDashoffset = RING * (1 - Math.min(1, holdMs / HOLD));
       // 대고 있는 동안 심지에 불이 조금씩 옮겨붙음
       candleOn.style.opacity = near ? (Math.min(1, holdMs / HOLD) * .75 * (.85 + Math.random() * .15)).toFixed(3) : '';
-      if (holdMs >= HOLD) {
+      if (holdMs >= HOLD && !over) {
         step = 2.5; el.classList.add('candle-lit'); Sound.ignite(); vibrate(60);
         candleOn.style.opacity = '';
         drag = null; el.classList.remove('near', 'held');
@@ -1460,6 +1461,7 @@
       }
     }
     function step2() {
+      if (over) return;
       setStep(2);
       say('2단계 · 초에 불을 붙여주세요!', `불붙은 성냥을 끌어다 <b>심지에 ${HOLD / 1000}초간</b> 대고 있어요`);
     }
@@ -1467,6 +1469,7 @@
     // ── ③ 불 끄기 (스위치 내리기)
     let pull = null;
     function step3() {
+      if (over) return;
       setStep(3);
       say('3단계 · 불을 꺼주세요!', '스위치를 잡고 <b>아래로 쭉</b> 내려요');
       // 화면을 꽉 채운 스위치 사진(cover)에서 스위치 손잡이 위치 → 화살표
@@ -1476,6 +1479,7 @@
       pull.style.left = `${ox + .545 * 452 * k + 14}px`; pull.style.top = `${oy + .48 * 602 * k}px`;
     }
     const lightsOff = () => {
+      if (over) return;   // 시간 초과 뒤에는 성공 처리 안 함 (실패 → 성공 겹침 방지)
       step = 3.5; el.classList.add('off'); Sound.flick(); vibrate(30);
       finish(true);
       later(() => { el.classList.add('dark'); big('준비 완료!', 'good'); }, 450);
@@ -1497,6 +1501,7 @@
       }
     });
     el.addEventListener('pointermove', (e) => {
+      if (over) return;
       if (step === 2 && drag) {
         drag.dx = e.clientX - drag.x; drag.dy = e.clientY - drag.y;
         stick.style.translate = `${drag.dx}px ${drag.dy}px`;
