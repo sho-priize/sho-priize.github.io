@@ -12,7 +12,7 @@
 
   const ENDING_IDS = Object.keys(SC).filter((id) => SC[id].type === 'ending');
   const MI = 'media/images/alone/';
-  const MISSION_IMGS = ['matchbox.png', 'stick_off.png', 'stick_on.png', 'candle_off.jpg', 'candle_on.jpg', 'switch_up.jpg', 'switch_down.jpg'].map((f) => MI + f);
+  const MISSION_IMGS = ['matchbox.webp', 'stick_off.webp', 'stick_on.webp', 'candle_off.jpg', 'candle_on.jpg', 'switch_up.jpg', 'switch_down.jpg'].map((f) => MI + f);
   const PHONE_TYPES = new Set(['call', 'chat', 'dial']);
   const isPhone = (id) => !!SC[id] && PHONE_TYPES.has(SC[id].type);
   const pad2 = (n) => String(n).padStart(2, '0');
@@ -1347,11 +1347,11 @@
       </div>
       <div class="ms-title"></div>
       <div class="ms-play">
-        <img class="ms-box" src="${MI}matchbox.png" alt="">
+        <img class="ms-box" src="${MI}matchbox.webp" alt="">
         <img class="ms-candle off" src="${MI}candle_off.jpg" alt="">
         <img class="ms-candle on" src="${MI}candle_on.jpg" alt="">
         <i class="ms-target"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17"/><circle class="p" cx="20" cy="20" r="17"/></svg></i>
-        <div class="ms-stick"><img class="off" src="${MI}stick_off.png" alt=""><img class="on" src="${MI}stick_on.png" alt=""></div>
+        <div class="ms-stick"><img class="off" src="${MI}stick_off.webp" alt=""><img class="on" src="${MI}stick_on.webp" alt=""></div>
         <div class="ms-sparks"></div>
         <div class="ms-heat"><s></s></div>
       </div>
@@ -1360,6 +1360,19 @@
       <div class="ms-flash"></div>`;
     stage.append(el);
     noZoom(el);
+    // 그림이 다 준비될 때까지 검은 화면 유지 (성냥갑이 늦게 뜨거나 안 뜨는 것 방지). 실패한 그림은 한 번 다시 받기
+    const ready = (img) => new Promise((ok) => {
+      const fin = () => (img.decode ? img.decode().catch(() => {}) : Promise.resolve()).then(ok);
+      if (img.complete && img.naturalWidth) return fin();
+      img.addEventListener('load', fin, { once: true });
+      img.addEventListener('error', () => {
+        img.addEventListener('load', fin, { once: true });
+        img.addEventListener('error', ok, { once: true });
+        img.src = img.getAttribute('src').split('?')[0] + '?r=' + Date.now();
+      }, { once: true });
+    });
+    const imgsReady = Promise.race([Promise.all([...el.querySelectorAll('img')].map(ready)), wait(6000)]);
+    gate = imgsReady;
     const q = (s) => $(s, el);
     const play = q('.ms-play'), stick = q('.ms-stick'), title = q('.ms-title'), cta = q('.ms-cta');
     const timeEl = q('.ms-time b'), bar = q('.ms-bar s'), flash = q('.ms-flash'), heat = q('.ms-heat s');
@@ -1522,8 +1535,13 @@
     // ── 시작
     setStep(1);
     say('1단계 · 성냥에 불을 붙여주세요!', '성냥을 <b>빠르게 연타</b>해서 불을 붙여요!');
-    big('START!');
-    later(() => { t0 = performance.now(); }, opts.atChoice ? 500 : 900);
+    el.classList.add('wait');
+    imgsReady.then(() => {
+      if (my !== token) return;
+      el.classList.remove('wait');
+      big('START!');
+      later(() => { t0 = performance.now(); }, opts.atChoice ? 500 : 900);
+    });
     loop();
     cleanup = () => { cancelAnimationFrame(raf); timers.forEach(clearTimeout); };
   }

@@ -701,5 +701,5 @@ html:not(.dev) #ph .ph-label { display: none; }
 .mission.off .ms-pull { opacity: 0; animation: none; }
 .mission[data-step="2"] .ms-stick { transform-origin: 50% -4.5cqw; }
 .mission.held .ms-stick { rotate: -50deg; }
-.mission.off .ms-dark { opacity: .97; transition: opacity .12s; }
-.mission.dark .ms-dark { opacity: .97; }
+.mission.off .ms-dark { opacity: .82; transition: opacity .12s; }
+.mission.dark .ms-dark { opacity: .82; }
