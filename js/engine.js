@@ -11,6 +11,8 @@
   const pstage = $('#pstage'), phone = $('#phone'), pscreen = $('#pscreen'), sideInfo = $('#side-info');
 
   const ENDING_IDS = Object.keys(SC).filter((id) => SC[id].type === 'ending');
+  const MI = 'media/images/alone/';
+  const MISSION_IMGS = ['matchbox.png', 'stick_off.png', 'stick_on.png', 'candle_off.jpg', 'candle_on.jpg', 'switch_up.jpg', 'switch_down.jpg'].map((f) => MI + f);
   const PHONE_TYPES = new Set(['call', 'chat', 'dial']);
   const isPhone = (id) => !!SC[id] && PHONE_TYPES.has(SC[id].type);
   const pad2 = (n) => String(n).padStart(2, '0');
@@ -176,6 +178,24 @@
         clicks.add(n); n.onended = () => clicks.delete(n);
       },
       stopClicks() { clicks.forEach((n) => { try { n.stop(); } catch {} }); clicks.clear(); },
+      // 짧은 잡음(성냥 긋기·셔터·스위치)
+      noise(dur, { f = 3000, q = 1, vol = .4, type = 'bandpass', at = 0, sweep } = {}) {
+        const c = ac(); if (!c || muted) return;
+        const len = Math.max(1, Math.floor(c.sampleRate * dur)), b = c.createBuffer(1, len, c.sampleRate), d = b.getChannelData(0);
+        for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+        const n = c.createBufferSource(), fl = c.createBiquadFilter(), g = c.createGain(), t = c.currentTime + at;
+        n.buffer = b; fl.type = type; fl.frequency.setValueAtTime(f, t); fl.Q.value = q;
+        if (sweep) fl.frequency.exponentialRampToValueAtTime(sweep, t + dur);
+        g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + Math.min(.012, dur / 3)); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+        n.connect(fl); fl.connect(g); g.connect(c.destination); n.start(t); n.stop(t + dur + .02);
+      },
+      strike() { this.noise(.07, { f: 2600 + Math.random() * 900, q: .8, vol: .55 }); this.noise(.05, { f: 4200, q: 1.2, vol: .3, at: .05 }); },
+      ignite() { this.noise(.7, { f: 500, q: .6, vol: .5, type: 'lowpass', sweep: 3200 }); this.noise(.12, { f: 3500, vol: .4 }); },
+      flick() { this.noise(.025, { f: 2400, q: 2, vol: .7 }); note(1900, .005, .04, .08, 'square'); this.noise(.03, { f: 1400, q: 2, vol: .45, at: .06 }); },
+      shutter() { this.noise(.045, { f: 3000, q: 1.4, vol: .7 }); this.noise(.08, { f: 1800, q: 1, vol: .55, at: .09 }); },
+      tick() { note(1250, 0, .07, .09, 'square'); },
+      buzz() { note(196, 0, .5, .12, 'sawtooth'); note(147, .18, .6, .12, 'sawtooth'); },
+      tada() { [[784, 0], [988, .09], [1175, .18], [1568, .27]].forEach(([f, t]) => note(f, t, .4, .1, 'triangle')); },
       send() { S.send ? file(S.send) : (note(880, 0, .1, .06), note(1318.5, .05, .16, .06)); },
       hangup() { S.hangup ? file(S.hangup) : (note(480, 0, .22, .1), note(480, .3, .22, .1)); },
     };
@@ -247,7 +267,7 @@
     if (ph.parentNode !== stage) stage.insertBefore(ph, vignette);
     if (!keepScreen) pscreen.innerHTML = '';
     pscreen.onclick = null;
-    $('.toast', stage)?.remove(); $('.mash', stage)?.remove();
+    $('.toast', stage)?.remove(); $('.mash', stage)?.remove(); $('.mission', stage)?.remove();
     phone.classList.remove('ringing');
     sideInfo.innerHTML = '';
   }
@@ -272,6 +292,7 @@
     else if (sc.type === 'call') showCall(id, sc, opts);
     else if (sc.type === 'chat') showChat(id, sc, opts);
     else if (sc.type === 'dial') showDial(id, sc, opts);
+    else if (sc.type === 'mission') showMission(id, sc, opts);
     Dev.update(id);
   }
 
@@ -1171,6 +1192,189 @@
     };
   }
 
+  /* ---------- 10초 미션 (혼자 준비한다) ----------
+     ① 성냥갑에 성냥 연타(1초 안에 6번) → 불 ② 불붙은 성냥을 초 심지에 3초 대기(떼면 처음부터) ③ 스위치 내려서 불 끄기 */
+  function showMission(id, sc, opts) {
+    const my = token, LIMIT = (sc.time || 10) * 1000;
+    state.checkpoint = { id, flags: { ...state.flags }, path: state.path.slice(), threads: JSON.parse(JSON.stringify(state.threads)) };
+    Route.snap(id, state.checkpoint);
+    video.hidden = true; ph.hidden = true;
+    const el = document.createElement('div');
+    el.className = 'mission';
+    el.innerHTML = `
+      <div class="ms-top">
+        <div class="ms-steps"><i class="on"></i><i></i><i></i></div>
+        <div class="ms-time"><b>${(LIMIT / 1000).toFixed(1)}</b></div>
+        <div class="ms-bar"><s></s></div>
+      </div>
+      <div class="ms-title"></div>
+      <div class="ms-play">
+        <img class="ms-box" src="${MI}matchbox.png" alt="">
+        <img class="ms-candle off" src="${MI}candle_off.jpg" alt="">
+        <img class="ms-candle on" src="${MI}candle_on.jpg" alt="">
+        <i class="ms-target"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17"/><circle class="p" cx="20" cy="20" r="17"/></svg></i>
+        <img class="ms-switch up" src="${MI}switch_up.jpg" alt="">
+        <img class="ms-switch down" src="${MI}switch_down.jpg" alt="">
+        <i class="ms-pull">↓</i>
+        <div class="ms-stick"><img class="off" src="${MI}stick_off.png" alt=""><img class="on" src="${MI}stick_on.png" alt=""></div>
+        <div class="ms-sparks"></div>
+        <div class="ms-heat"><s></s></div>
+      </div>
+      <div class="ms-cta"></div>
+      <i class="ms-dark"></i>
+      <div class="ms-flash"></div>`;
+    stage.append(el);
+    const q = (s) => $(s, el);
+    const play = q('.ms-play'), stick = q('.ms-stick'), title = q('.ms-title'), cta = q('.ms-cta');
+    const timeEl = q('.ms-time b'), bar = q('.ms-bar s'), flash = q('.ms-flash'), heat = q('.ms-heat s');
+    const ring = q('.ms-target .p'), RING = 2 * Math.PI * 17;
+    ring.style.strokeDasharray = RING; ring.style.strokeDashoffset = RING;
+    const cq = () => play.getBoundingClientRect().width / 100;   // 1cqw (놀이판 가로의 1%)
+    let step = 0, t0 = 0, raf = 0, over = false, lastSec = 99;
+    const timers = [];
+    const later = (fn, ms) => timers.push(setTimeout(() => { if (my === token) fn(); }, ms));
+    const say = (t, c) => { title.textContent = t; cta.innerHTML = c; cta.classList.remove('in'); void cta.offsetWidth; cta.classList.add('in'); };
+    const setStep = (n) => {
+      step = n; el.dataset.step = n;
+      el.querySelectorAll('.ms-steps i').forEach((d, k) => { d.classList.toggle('on', k <= n - 1); d.classList.toggle('done', k < n - 1); });
+    };
+    const big = (t, cls = '') => { flash.textContent = t; flash.className = 'ms-flash ' + cls; void flash.offsetWidth; flash.classList.add('show'); };
+
+    // ── 시간
+    const loop = () => {
+      raf = requestAnimationFrame(loop);
+      if (!t0 || over) return;
+      const left = Math.max(0, LIMIT - (performance.now() - t0));
+      timeEl.textContent = (left / 1000).toFixed(1);
+      bar.style.transform = `scaleX(${left / LIMIT})`;
+      el.classList.toggle('hurry', left < 3000);
+      const sec = Math.ceil(left / 1000);
+      if (sec <= 3 && sec !== lastSec && left > 0) { lastSec = sec; Sound.tick(); }
+      if (step === 1) {   // 성냥 열기: 최근 1초 동안 친 횟수
+        const now = performance.now();
+        while (taps.length && now - taps[0] > 1000) taps.shift();
+        heat.style.transform = `scaleX(${Math.min(1, taps.length / 6)})`;
+      }
+      if (step === 2) holdTick();
+      if (left <= 0) finish(false);
+    };
+    const finish = (ok) => {
+      if (over) return; over = true;
+      Route.pick(id, ok ? 0 : 1);
+      cta.innerHTML = '';
+      if (ok) { Sound.tada(); later(() => go(resolve(sc.success)), 1500); }
+      else {
+        Sound.buzz(); vibrate([200, 80, 200]);
+        el.classList.add('fail'); big('TIME OVER', 'bad');
+        later(() => go(resolve(sc.fail)), 1600);
+      }
+    };
+
+    // ── ① 성냥 긋기
+    const taps = [];
+    const sparks = q('.ms-sparks');
+    const strike = () => {
+      Sound.strike(); vibrate(12);
+      taps.push(performance.now());
+      stick.getAnimations().forEach((a) => a.cancel());
+      const c = cq();
+      stick.animate({ translate: ['0 0', `${-3.4 * c}px ${-5 * c}px`, `${-3.4 * c}px ${5 * c}px`, '0 0'], offset: [0, .3, .75, 1] },
+        { duration: 150, easing: 'ease-out' });
+      for (let k = 0; k < 4; k++) {
+        const sp = document.createElement('i');
+        sp.style.cssText = `--x:${(Math.random() * 2 - 1) * 7}cqw;--y:${-Math.random() * 7}cqw`;
+        sparks.append(sp); setTimeout(() => sp.remove(), 450);
+      }
+      const now = performance.now();
+      while (taps.length && now - taps[0] > 1000) taps.shift();
+      if (taps.length >= 6) {
+        step = 1.5; el.classList.add('lit'); Sound.ignite(); vibrate(60);
+        heat.style.transform = 'scaleX(1)';
+        t0 += 600;   // 넘어가는 연출 시간은 빼 줌
+        later(step2, 600);
+      }
+    };
+
+    // ── ② 초에 불 붙이기 (드래그)
+    let drag = null, holdMs = 0, holdLast = 0, near = false;
+    const home = () => { stick.style.transition = 'translate .35s cubic-bezier(.3,1.4,.5,1)'; stick.style.translate = ''; };
+    // 위치는 놀이판 기준 cqw 로 계산 (CSS 와 같은 숫자): 성냥 불꽃 기본 위치 → 끈 만큼 이동, 심지 위치
+    const FLAME = { x: 74.5, y: 59 }, WICK = { x: 51.7, y: 20.2 };
+    function holdTick() {
+      const now = performance.now();
+      if (drag) {
+        const c = cq();
+        near = Math.hypot(FLAME.x + drag.dx / c - WICK.x, FLAME.y + drag.dy / c - WICK.y) < 9;
+      } else near = false;
+      if (near) holdMs += now - (holdLast || now); else holdMs = 0;
+      holdLast = now;
+      el.classList.toggle('near', near);
+      ring.style.strokeDashoffset = RING * (1 - Math.min(1, holdMs / 3000));
+      if (holdMs >= 3000) {
+        step = 2.5; el.classList.add('candle-lit'); Sound.ignite(); vibrate(60);
+        drag = null; el.classList.remove('near');
+        t0 += 600;
+        later(step3, 600);
+      }
+    }
+    function step2() {
+      setStep(2);
+      say('2단계 · 초에 불을 붙여주세요!', '불붙은 성냥을 끌어다 <b>심지에 3초간</b> 대고 있어요');
+    }
+
+    // ── ③ 불 끄기 (스위치 내리기)
+    let pull = null;
+    function step3() {
+      setStep(3);
+      say('3단계 · 불을 꺼주세요!', '스위치를 잡고 <b>아래로 쭉</b> 내려요');
+    }
+    const lightsOff = () => {
+      step = 3.5; el.classList.add('off'); Sound.flick(); vibrate(30);
+      finish(true);
+      later(() => { el.classList.add('dark'); big('준비 완료!', 'good'); }, 300);
+    };
+
+    // ── 입력
+    play.addEventListener('pointerdown', (e) => {
+      if (over || !t0) return;
+      e.preventDefault();
+      if (step === 1) strike();
+      else if (step === 2) {
+        drag = { x: e.clientX, y: e.clientY, dx: 0, dy: 0 }; holdMs = 0; holdLast = performance.now();
+        stick.style.transition = 'none'; stick.getAnimations().forEach((a) => a.cancel());
+        try { play.setPointerCapture(e.pointerId); } catch {}
+      } else if (step === 3) {
+        pull = { y: e.clientY };
+        try { play.setPointerCapture(e.pointerId); } catch {}
+      }
+    });
+    play.addEventListener('pointermove', (e) => {
+      if (step === 2 && drag) {
+        drag.dx = e.clientX - drag.x; drag.dy = e.clientY - drag.y;
+        stick.style.translate = `${drag.dx}px ${drag.dy}px`;
+      }
+      if (step === 3 && pull) {
+        const dy = Math.max(0, e.clientY - pull.y);
+        q('.ms-pull').style.setProperty('--dy', Math.min(dy, cq() * 10) + 'px');
+        if (dy > cq() * 6) { pull = null; lightsOff(); }
+      }
+    });
+    const up = () => {
+      if (step === 2 && drag) { drag = null; holdMs = 0; home(); }
+      if (step === 3) { pull = null; q('.ms-pull').style.removeProperty('--dy'); }
+    };
+    play.addEventListener('pointerup', up);
+    play.addEventListener('pointercancel', up);
+
+    // ── 시작
+    setStep(1);
+    say('1단계 · 성냥에 불을 붙여주세요!', '성냥을 <b>빠르게 연타</b>해서 불을 붙여요!');
+    big('START!');
+    later(() => { t0 = performance.now(); }, opts.atChoice ? 500 : 900);
+    loop();
+    cleanup = () => { cancelAnimationFrame(raf); timers.forEach(clearTimeout); };
+  }
+
   /* ---------- 엔딩 ---------- */
   function showEnding(id, sc, opts = {}) {
     const good = sc.kind === 'good';   // 엔딩 종류: 'good' 이 아니면 배드 엔딩
@@ -1195,15 +1399,18 @@
 
     let voiceStop = () => {};
     // 그림을 먼저 준비(디코딩)해 두고 카드를 한 번에 표시
-    const artImg = new Image(); artImg.src = `media/images/end_${good ? 'good' : 'bad'}.png`;
+    const artSrc = sc.polaroid || `media/images/end_${good ? 'good' : 'bad'}.png`;
+    const artCls = sc.polaroid ? 'polaroid' : good ? 'good' : 'bad';
+    const artImg = new Image(); artImg.src = artSrc;
     const artReady = Promise.race([artImg.decode?.().catch(() => {}) ?? Promise.resolve(), wait(1500)]);
     const showCard = async () => {
       await artReady;
       if (!endingEl.isConnected || currentId !== id) return;
+      if (introT) { clearTimeout(introT); introT = null; }
       endingEl.innerHTML = `
         <div class="end-card">
           <div class="end-head">
-            <img class="end-art ${good ? 'good' : 'bad'}" src="media/images/end_${good ? 'good' : 'bad'}.png" alt="${good ? 'GOOD END' : 'BAD END'}">
+            <img class="end-art ${artCls}" src="${artSrc}" alt="${good ? 'GOOD END' : 'BAD END'}">
             <span class="end-kind ${good ? 'good' : 'bad'}">${good ? 'GOOD ENDING' : 'BAD ENDING'}</span>
             <span class="end-count">ENDING ${pad2(ENDING_IDS.indexOf(id) + 1)} / ${pad2(ENDING_IDS.length)}</span>
           </div>
@@ -1302,8 +1509,16 @@
 
     endingEl.hidden = false;
     // 영상이 있으면 cardAt초(기본: 영상 끝)에 카드 표시
-    let cardTimer;
-    if (sc.src) {
+    let cardTimer, introT = null;
+    if (sc.polaroid && !opts.atChoice) {
+      // 찰칵! → 폴라로이드가 천천히 나오며 현상 → 엔딩 카드
+      endingEl.innerHTML = `<div class="pola-intro"><i class="pi-flash"></i><i class="pi-slot"></i>
+        <div class="pi-out"><div class="pi-photo"><img src="${sc.polaroid}" alt=""><i class="pi-dev"></i></div></div></div>`;
+      Sound.shutter(); vibrate(40);
+      const intro = $('.pola-intro', endingEl);
+      introT = setTimeout(() => { intro.classList.add('leave'); introT = setTimeout(showCard, 450); }, 5200);
+      intro.onclick = () => { if (!introT) return; clearTimeout(introT); intro.classList.add('leave'); introT = setTimeout(showCard, 300); };
+    } else if (sc.src) {
       const check = () => {
         const at = sc.cardAt ?? P.end();
         if (P.time() >= at || P.ended()) showCard(); else cardTimer = setTimeout(check, 200);
@@ -1312,7 +1527,7 @@
     } else {
       cardTimer = setTimeout(showCard, 500);
     }
-    cleanup = () => { cancelAnimationFrame(raf); clearTimeout(cardTimer); P.stop(); voiceStop(); endingEl.onclick = null; };
+    cleanup = () => { cancelAnimationFrame(raf); clearTimeout(cardTimer); clearTimeout(introT); P.stop(); voiceStop(); endingEl.onclick = null; };
   }
 
   // 음성 파일을 분석해 막대 높이(소리 크기) 계산
@@ -1375,7 +1590,7 @@
       seen.add(id);
       const sc = SC[id];
       // 루트에는 고를 게 2개 이상인 선택지만 (버튼 하나짜리는 건너뜀)
-      if ((sc.choice && sc.choice.options.length >= 2) || sc.mash) return { kind: 'choice', id };
+      if ((sc.choice && sc.choice.options.length >= 2) || sc.mash || sc.type === 'mission') return { kind: 'choice', id };
       if (sc.type === 'ending') return { kind: 'ending', id };
       id = sc.choice ? sc.choice.options[0].next : sc.answer || sc.next;
     }
@@ -1384,6 +1599,7 @@
 
   // 루트에서 갈라지는 길: 선택지, 또는 연타 이벤트(성공/실패)
   const routeOptions = (sc) => sc.choice ? sc.choice.options
+    : sc.type === 'mission' ? [{ text: '미션 성공', next: sc.success }, { text: '미션 실패', next: sc.fail }]
     : [{ text: '연타 성공', next: sc.mash.success }, { text: '연타 실패', next: sc.mash.fail }];
 
   function routeGraph() {
@@ -1685,8 +1901,9 @@
         if (order.length <= MAX) break;
       }
     };
-    const mediaOf = (sc) => [...[].concat(sc.src || []), sc.avatar, sc.voice?.src, sc.voice?.avatar, sc.route?.thumb];
-    const nextsOf = (sc) => [sc.next, sc.answer, sc.decline, ...(sc.choice?.options || []).map((o) => o.next)]
+    const mediaOf = (sc) => [...[].concat(sc.src || []), sc.avatar, sc.voice?.src, sc.voice?.avatar, sc.route?.thumb, sc.polaroid,
+      ...(sc.type === 'mission' ? MISSION_IMGS : [])];
+    const nextsOf = (sc) => [sc.next, sc.answer, sc.decline, sc.success, sc.fail, sc.mash?.success, sc.mash?.fail, ...(sc.choice?.options || []).map((o) => o.next)]
       .filter((n) => typeof n === 'string' && SC[n]);
     return {
       add,
@@ -1860,7 +2077,8 @@
   addEventListener('hashchange', () => fromHash(false));
   // 폰트가 준비된 뒤 첫 화면 표시 (기본 글꼴로 잠깐 보이는 것 방지)
   Preload.add(CFG.titleMedia); Preload.add(CFG.phone?.selfImage);
-  ['media/images/end_good.png', 'media/images/end_bad.png', 'media/images/voicephoto.jpg'].forEach(Preload.add);   // 엔딩 그림은 처음에 받아둠
+  ['media/images/end_good.png', 'media/images/end_bad.png', 'media/images/voicephoto.jpg'].forEach(Preload.add);
+  Object.values(SC).forEach((x) => x.polaroid && Preload.add(x.polaroid));   // 엔딩 그림은 처음에 받아둠
   Promise.race([document.fonts?.ready, wait(2500)]).then(() => {
     fromHash(true);
     if (!gate) requestAnimationFrame(() => fade.classList.remove('on'));

@@ -379,7 +379,7 @@ window.STORY = {
           { text: '원빈', next: 'p_wonbin', set: { helper: '원빈' } },
           { text: '소희', next: 'p_sohee', set: { helper: '소희' } },
           { text: '앤톤', next: 'p_anton', set: { helper: '앤톤' } },
-          { text: '혼자 준비한다', next: 'n_tbd', set: { helper: null } },
+          { text: '혼자 준비한다', next: 'n_alone1', set: { helper: null } },
         ],
       },
     },
@@ -634,8 +634,8 @@ window.STORY = {
     c_sohee3: {
       type: 'clip', src: 'media/clips/sohee3.mp4',
       route: { title: '응급상황!', thumb: 'media/images/thumbs/c_sohee3.jpg' },
-      // 영상 끝 장면에서 버튼 → 1.5초 안에 10번
-      mash: { text: '응급상황! 빠르게 연타하세요!', taps: 10, window: 1.5, success: 'c_sohee4', fail: 'n_sohee4' },
+      // 영상 끝 장면에서 버튼 → 1.7초 안에 10번
+      mash: { text: '응급상황! 빠르게 연타하세요!', taps: 10, window: 1.7, success: 'c_sohee4', fail: 'n_sohee4' },
     },
     c_sohee4: { type: 'clip', src: 'media/clips/sohee4.mp4', next: 'e_good_sohee1' },
     n_sohee4: {
@@ -669,6 +669,69 @@ window.STORY = {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
         src: 'media/voices/good_sohee1.m4a',   // voice_good_sohee1 영상에서 소리만
         subs: [[0, 99, '우와~ 우와.. 진~짜 예상치 못했다']],
+      },
+    },
+
+    /* ── 혼자 준비한다 ── */
+    n_alone1: {
+      type: 'narration',
+      lines: [
+        '진심을 전하기 위해 쇼타로의 생일을 혼자 열심히 준비해보기로 했습니다.',
+        '미리 할 수 있는 모든 준비를 마쳤으니 쇼타로를 기다립니다..',
+      ],
+      next: 'c_alone1',
+    },
+    c_alone1: { type: 'clip', src: 'media/clips/alone_1.mp4', next: 'n_alone2' },
+    n_alone2: {
+      type: 'narration',
+      lines: [
+        '앗! 쇼타로의 발걸음이 예상보다 빨랐습니다.',
+        '10초 안에 준비를 마쳐주세요!',
+      ],
+      next: 'm_alone',
+    },
+    // 10초 미션: ① 성냥 연타(1초에 6번) ② 성냥을 초 심지에 3초 ③ 스위치 내려서 불 끄기
+    m_alone: {
+      type: 'mission',
+      time: 10,
+      route: { title: '10초 미션', thumb: 'media/images/thumbs/m_alone.jpg' },
+      success: 'c_alone_good',
+      fail: 'n_alone_fail',
+    },
+    n_alone_fail: {
+      type: 'narration',
+      lines: [
+        '쇼타로가 한 발 빨랐습니다..',
+        '준비가 되기 전에 쇼타로가 들어와 깜짝파티를 실패했습니다…',
+      ],
+      next: 'e_bad_alone',
+    },
+    e_bad_alone: {
+      type: 'ending',
+      title: '느려서 실패',
+      route: { thumb: 'media/images/thumbs/e_bad_alone.jpg' },
+      desc: '팔척수달의 발걸음은 보기보다 빠르답니다',
+      bg: ['#3a2418', '#0c0604'],
+      voice: {
+        name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
+        src: null, duration: 3,   // ← 음성 받으면 연결
+        subs: [[0, 3, '(쇼타로의 한마디 — 추후 제공)']],
+      },
+    },
+    c_alone_good: { type: 'clip', src: 'media/clips/shotaro_alone.mp4', next: 'e_good_alone' },
+    e_good_alone: {
+      type: 'ending',
+      title: '쇼짱 생일 축하해!',
+      kind: 'good',
+      // 굿 그림 대신 폴라로이드: 찰칵 → 사진이 천천히 나온 뒤 엔딩 카드
+      polaroid: 'media/images/alone/polaroid.jpg',
+      route: { thumb: 'media/images/thumbs/e_good_alone.jpg' },
+      desc: '우리 팀에 쇼타로 있다!',
+      bg: ['#4a3a1a', '#0c0a04'],
+      voice: {
+        name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
+        src: null, duration: 3,   // ← 음성 받으면 연결
+        subs: [[0, 3, '(쇼타로의 한마디 — 추후 제공)']],
       },
     },
 
