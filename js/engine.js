@@ -1436,9 +1436,8 @@
     let drag = null, holdMs = 0, holdLast = 0, near = false;
     const home = () => { stick.style.transition = 'translate .35s cubic-bezier(.3,1.4,.5,1), rotate .3s ease'; stick.style.translate = ''; };
     // 위치는 놀이판 기준 cqw 로 계산 (CSS 와 같은 숫자): 성냥 불꽃 기본 위치 → 끈 만큼 이동, 심지 위치
-    // 잡으면 성냥을 손으로 든 것처럼 아래쪽(손잡이)을 축으로 대각선으로 기울임 → 불꽃 위치도 그만큼
-    const TILT = -50 * Math.PI / 180, GRIP = { x: 74.5, y: 118 }, LEN = 59;
-    const FLAME = { x: GRIP.x + LEN * Math.sin(TILT), y: GRIP.y - LEN * Math.cos(TILT) }, WICK = { x: 51.7, y: 20.2 };
+    // 잡으면 성냥을 손으로 든 것처럼 대각선으로 기울임 — 불꽃을 축으로 돌아서 불붙은 부분은 제자리
+    const FLAME = { x: 74.5, y: 59 }, WICK = { x: 51.7, y: 20.2 };
     const candleOn = q('.ms-candle.on');
     function holdTick() {
       const now = performance.now();
@@ -1462,7 +1461,7 @@
     }
     function step2() {
       setStep(2);
-      say('2단계 · 초에 불을 붙여주세요!', '불붙은 성냥을 끌어다 <b>심지에 3초간</b> 대고 있어요');
+      say('2단계 · 초에 불을 붙여주세요!', `불붙은 성냥을 끌어다 <b>심지에 ${HOLD / 1000}초간</b> 대고 있어요`);
     }
 
     // ── ③ 불 끄기 (스위치 내리기)

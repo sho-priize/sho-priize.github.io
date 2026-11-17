@@ -617,16 +617,16 @@ html:not(.dev) #ph .ph-label { display: none; }
 .pola-intro.leave { opacity: 0; }
 .pi-flash { position: absolute; inset: 0; background: #fff; opacity: 0; animation: piFlash .6s ease-out both; }
 @keyframes piFlash { 0% { opacity: .85; } 100% { opacity: 0; } }
-.pi-photo { position: relative; width: min(76cqw, 340px); rotate: -2deg; box-shadow: 0 16px 40px rgba(0,0,0,.55);
+.pi-photo { position: relative; width: min(82cqw, 360px); rotate: -2deg; filter: drop-shadow(0 16px 30px rgba(0,0,0,.55));
   animation: piIn .7s cubic-bezier(.2,1.2,.4,1) both; }
 .pi-photo img { display: block; width: 100%; }
 /* 아무것도 안 찍힌 필름 면 → 천천히 걷히며 사진이 드러남 */
-.pi-dev { position: absolute; left: 4.13%; top: 4.7%; width: 91.74%; height: 78.33%; background: linear-gradient(160deg, rgba(46,49,56,.96), rgba(34,37,43,.96));
+.pi-dev { position: absolute; left: 6.7%; top: 8.36%; width: 71.2%; height: 84.36%; background: linear-gradient(160deg, rgba(46,49,56,.96), rgba(34,37,43,.96));
   -webkit-backdrop-filter: blur(8px) sepia(.5); backdrop-filter: blur(8px) sepia(.5); animation: piDev 4.4s cubic-bezier(.5,0,.6,1) .5s forwards; }
 @keyframes piIn { from { opacity: 0; transform: translateY(24px) scale(.94); } to { opacity: 1; transform: none; } }
 @keyframes piImg { to { filter: none; } }
 @keyframes piDev { 0% { opacity: 1; } 35% { opacity: .85; } 100% { opacity: 0; } }
-#ending .end-art.polaroid { width: min(62%, 250px); aspect-ratio: 872 / 766; rotate: -3deg; box-shadow: 0 12px 30px rgba(0,0,0,.55); }
+#ending .end-art.polaroid { width: min(66%, 270px); aspect-ratio: 860 / 710; rotate: -3deg; filter: drop-shadow(0 12px 24px rgba(0,0,0,.55)); }
 
 /* ── 영상 위 문자 알림 + 긴급상황 답장 (원빈) ── */
 .cnoti { position: absolute; inset: 0; z-index: 13; pointer-events: none; }
@@ -688,6 +688,7 @@ html:not(.dev) #ph .ph-label { display: none; }
   text-shadow: 0 0 6px #000, 0 0 16px rgba(255,140,40,.95); translate: 0 var(--dy, 0); }
 .mission[data-step="3"] .ms-pull { opacity: 1; animation: msPull 1s ease-in-out infinite; }
 .mission.off .ms-pull { opacity: 0; animation: none; }
+.mission[data-step="2"] .ms-stick { transform-origin: 50% -4.5cqw; }
 .mission.held .ms-stick { rotate: -50deg; }
 .mission.off .ms-dark { opacity: .97; transition: opacity .12s; }
 .mission.dark .ms-dark { opacity: .97; }

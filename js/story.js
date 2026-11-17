@@ -560,7 +560,7 @@ window.STORY = {
       auto: 1000,
       next: 'c_wonbin2',
     },
-    // 건너뛰기 불가. 재생 중 원빈 문자가 위에 알림으로 → 19초 뒤 긴급상황: 3초 안에 알림 눌러 'ㄴㄴ 끊지마' 전송
+    // 건너뛰기 불가. 재생 중 원빈 문자가 위에 알림으로 → 19초 뒤 긴급상황: 6초 안에 알림 눌러 'ㄴㄴ 끊지마' 전송
     c_wonbin2: {
       type: 'clip', src: 'media/clips/wonbin2.mp4',
       noSkip: true,
@@ -581,7 +581,7 @@ window.STORY = {
         at: 19.6,
         text: '원빈이에게 끊지 말라고 답장해주세요!',
         placeholder: 'ㄴㄴ 끊지마', answer: 'ㄴㄴ 끊지마',   // 띄어쓰기는 상관없음
-        time: 3,   // 긴급상황 뜬 뒤 알림 누르고 입력·전송까지 3초
+        time: 6,   // 긴급상황 뜬 뒤 알림 누르고 입력·전송까지 6초
         success: 'n_wonbin_ok', fail: 'c_wonbin3',
       },
     },
@@ -821,8 +821,8 @@ window.STORY = {
     m_alone: {
       type: 'mission',
       time: 6,    // 제한 시간(초)
-      taps: 9,    // 1단계: 1초 안에 몇 번 연타
-      hold: 3,    // 2단계: 심지에 대고 있을 시간(초)
+      taps: 6,    // 1단계: 1초 안에 몇 번 연타
+      hold: 2,    // 2단계: 심지에 대고 있을 시간(초)
       route: { title: '6초 미션', thumb: 'media/images/thumbs/m_alone.jpg' },
       success: 'c_alone_good',
       fail: 'n_alone_fail',
@@ -853,7 +853,7 @@ window.STORY = {
       title: '쇼짱 생일 축하해!',
       kind: 'good',
       // 굿 그림 대신 폴라로이드: 찰칵 → 사진이 천천히 나온 뒤 엔딩 카드
-      polaroid: 'media/images/alone/polaroid.jpg',
+      polaroid: 'media/images/alone/polaroid.webp',
       route: { thumb: 'media/images/thumbs/e_good_alone.jpg' },
       desc: '우리 팀에 쇼타로 있다!',
       bg: ['#4a3a1a', '#0c0a04'],
