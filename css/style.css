@@ -618,14 +618,22 @@ html:not(.dev) #ph .ph-label { display: none; }
 .pi-flash { position: absolute; inset: 0; background: #fff; opacity: 0; animation: piFlash .6s ease-out both; }
 @keyframes piFlash { 0% { opacity: .85; } 100% { opacity: 0; } }
 .pi-photo { position: relative; width: min(82cqw, 360px); rotate: -2deg; filter: drop-shadow(0 16px 30px rgba(0,0,0,.55));
-  animation: piIn .7s cubic-bezier(.2,1.2,.4,1) both; }
+  animation: piIn .35s cubic-bezier(.2,1.2,.4,1) both; }
 .pi-photo img { display: block; width: 100%; }
-/* 아무것도 안 찍힌 필름 면 → 천천히 걷히며 사진이 드러남 */
-.pi-dev { position: absolute; left: 6.7%; top: 8.36%; width: 71.2%; height: 84.36%; background: linear-gradient(160deg, rgba(46,49,56,.96), rgba(34,37,43,.96));
-  -webkit-backdrop-filter: blur(8px) sepia(.5); backdrop-filter: blur(8px) sepia(.5); animation: piDev 4.4s cubic-bezier(.5,0,.6,1) .5s forwards; }
-@keyframes piIn { from { opacity: 0; transform: translateY(24px) scale(.94); } to { opacity: 1; transform: none; } }
-@keyframes piImg { to { filter: none; } }
-@keyframes piDev { 0% { opacity: 1; } 35% { opacity: .85; } 100% { opacity: 0; } }
+/* 찍힌 직후: 프레임 안 사진이 10% → (불규칙하게) → 3초 안에 90% 진해짐. 필름 면 색을 덮었다 걷는 방식 */
+.pi-dev { position: absolute; left: 6.7%; top: 8.36%; width: 71.2%; height: 84.36%; background: #24262b; opacity: .9;
+  animation: piDev 3s linear .3s forwards; transition: opacity .35s; }
+@keyframes piIn { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes piDev { 0% { opacity: .9; } 12% { opacity: .8; } 20% { opacity: .86; } 33% { opacity: .62; } 42% { opacity: .7; }
+  55% { opacity: .45; } 63% { opacity: .5; } 76% { opacity: .27; } 84% { opacity: .32; } 100% { opacity: .1; } }
+.pola-intro.skip .pi-dev { animation: none; opacity: 0; transition: opacity .3s; }
+.pola-intro.flying .pi-flash { display: none; }
+.pola-intro.flying .pi-dev { animation: none; opacity: 0; }
+.pola-intro.flying .pi-photo { animation: none; }
+/* 사진이 날아가 앉는 동안: 그림 자리는 움직이지 않게(위로 올라오는 효과 없이), 나머지는 서서히 */
+#ending .pola-fly .end-head { animation: none; }
+#ending .pola-fly .end-head > :not(.end-art) { animation: endFade .6s .35s both; }
+@keyframes endFade { from { opacity: 0; } to { opacity: 1; } }
 #ending .end-art.polaroid { width: min(66%, 270px); aspect-ratio: 860 / 710; rotate: -3deg; filter: drop-shadow(0 12px 24px rgba(0,0,0,.55)); }
 
 /* ── 영상 위 문자 알림 + 긴급상황 답장 (원빈) ── */
@@ -647,7 +655,7 @@ html:not(.dev) #ph .ph-label { display: none; }
 .ur-bar, .ur-time { width: min(70cqw, 280px); height: 8px; border-radius: 9px; background: rgba(255,255,255,.18); overflow: hidden; }
 .ur-bar s, .ur-time s { display: block; height: 100%; background: #ff4b3e; transform-origin: left; }
 #stage.urgent .cnoti .cn.old { opacity: 0; }
-.cnoti.late .ur-ov { background: rgba(40,0,0,.8); }
+.cnoti.late .ur-ov { background: rgba(0,0,0,.85); }
 /* 답장 화면: 문서 위에 고정 (키보드 올라오면 보이는 영역에 맞춤) */
 .ur-sheet { position: fixed; left: 0; right: 0; top: 0; height: 100%; z-index: 50; display: flex; flex-direction: column; background: #000; color: #fff;
   font-family: -apple-system, var(--sans); opacity: 0; pointer-events: none; transform: translateY(14px); transition: opacity .18s, transform .18s; }
@@ -673,7 +681,10 @@ html:not(.dev) #ph .ph-label { display: none; }
 .ur-input .send svg { width: 17px; height: 17px; color: #fff; }
 .ur-sheet.typed .send { opacity: 1; }
 .ur-sheet.wrong .field { animation: msShake .35s ease; border-color: #ff4b3e; }
-.ur-sheet.late::after { content: '시간 초과…'; position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.7); font: 800 26px/1 var(--sans); color: #ff5a4a; }
+.ur-sheet.late::after { content: '시간 초과…'; position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.8); font: 800 26px/1 var(--sans); color: #fff; }
+/* 키보드가 내려가는 동안 답장 화면 아래로 뒤 화면이 비치지 않게 검정으로 채움 */
+.ur-sheet { box-shadow: 0 0 0 100vmax #000; }
+.ur-sheet:not(.open) { box-shadow: none; }
 
 /* 미션 수정: 3단계 스위치 사진 화면 가득 / 2단계 성냥 들면 대각선 / 불 끄면 확실히 어둡게 */
 .ms-sw { position: absolute; inset: 0; opacity: 0; transition: opacity .3s; pointer-events: none; }

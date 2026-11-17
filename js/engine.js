@@ -561,7 +561,7 @@
         <div class="ur-head"><span class="back">${ICON.chev}</span><div class="m-av">${esc(initial)}</div><b>${esc(from)}</b></div>
         <div class="ur-body">${recv.slice(-5).map((x) => `<div class="ur-b them"><span>${esc(x)}</span></div>`).join('')}</div>
         <form class="ur-input"><span class="plus">${ICON.plus}</span>
-          <label class="field"><input type="text" placeholder="${esc(U.placeholder || '')}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send">
+          <label class="field"><input type="text" lang="ko" placeholder="${esc(U.placeholder || '')}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send">
           <button type="submit" class="send" aria-label="보내기">${ICON.up}</button></label></form>`;
       document.body.append(sheet);
       input = $('input', sheet);
@@ -1556,6 +1556,8 @@
       if (!endingEl.isConnected || currentId !== id) return;
       if (introT) { clearTimeout(introT); introT = null; }
       const keepFx = $('.end-fx', endingEl);   // 폴라로이드 화면에서 돌던 컨페티는 끊기지 않게 그대로
+      const intro = $('.pola-intro', endingEl);   // 폴라로이드 사진도 그대로 두고 카드 그림 자리로 날아감
+      intro?.remove();
       endingEl.innerHTML = `
         <div class="end-card">
           <div class="end-head">
@@ -1596,7 +1598,8 @@
       const fx = keepFx || document.createElement(good ? 'canvas' : 'div');
       fx.className = 'end-fx';
       endingEl.prepend(fx);
-      if (good && !keepFx) Confetti.start(fx);
+      if (intro) flyPolaroid(intro, card);
+      if (good) { if (!keepFx) Confetti.start(fx); }
       else fx.innerHTML = Array.from({ length: 14 }, (_, k) => {
         // 😢 는 글자를 가리지 않게 양옆으로, 작은 💧 는 어디든
         const face = k % 2 === 0;
@@ -1667,8 +1670,8 @@
       if (good) Confetti.start($('.end-fx', endingEl));
       Sound.shutter(); vibrate(40);
       const intro = $('.pola-intro', endingEl);
-      introT = setTimeout(() => { intro.classList.add('leave'); introT = setTimeout(showCard, 450); }, 5600);
-      intro.onclick = () => { if (!introT) return; clearTimeout(introT); intro.classList.add('leave'); introT = setTimeout(showCard, 300); };
+      introT = setTimeout(showCard, 3900);   // 3초 동안 진해진 뒤 카드로
+      intro.onclick = () => { if (!introT) return; clearTimeout(introT); intro.classList.add('skip'); showCard(); };
     } else if (sc.src) {
       const check = () => {
         const at = sc.cardAt ?? P.end();
@@ -1679,6 +1682,26 @@
       cardTimer = setTimeout(showCard, 500);
     }
     cleanup = () => { cancelAnimationFrame(raf); clearTimeout(cardTimer); clearTimeout(introT); P.stop(); voiceStop(); endingEl.onclick = null; };
+  }
+
+  // 폴라로이드 → 엔딩 카드 그림 자리로 작아지며 이동 (같은 이미지라 다시 불러오지 않음)
+  function flyPolaroid(intro, card) {
+    const art = $('.end-art', card), photo = $('.pi-photo', intro);
+    card.classList.add('pola-fly');
+    intro.style.pointerEvents = 'none';
+    intro.classList.add('flying');   // 다시 붙일 때 플래시·현상 효과가 처음부터 재생되지 않게
+    endingEl.append(intro);
+    art.style.opacity = '0';
+    const a = art.getBoundingClientRect(), p = photo.getBoundingClientRect();
+    const s = a.width / p.width;
+    const dx = (a.left + a.width / 2) - (p.left + p.width / 2), dy = (a.top + a.height / 2) - (p.top + p.height / 2);
+    photo.style.animation = 'none';
+    const anim = photo.animate([
+      { transform: 'none', rotate: '-2deg' },
+      { transform: `translate(${dx}px, ${dy}px) scale(${s})`, rotate: '-3deg' },
+    ], { duration: 750, easing: 'cubic-bezier(.45,0,.2,1)', fill: 'forwards' });
+    const done = () => { art.style.opacity = ''; intro.remove(); };
+    anim.onfinish = done; setTimeout(done, 1200);
   }
 
   // 음성 파일을 분석해 막대 높이(소리 크기) 계산
