@@ -517,7 +517,134 @@ window.STORY = {
         [0, 3, '원빈아? 생일파티 준비 같이 하자.'],
         [3, 99, '선택받아서 감격한 것 같다', 'think'],
       ],
-      next: 'n_tbd',
+      next: 'n_wonbin1',
+    },
+
+    /* ── 원빈 갈래 ── */
+    n_wonbin1: {
+      type: 'narration',
+      lines: [
+        '원빈이와 심도 깊은 토론을 했다.',
+        '쇼타로는 자기가 잘 아니 걱정 말라고 한다.',
+        '믿어보자.',
+      ],
+      next: 'p_wonbin1',
+    },
+    p_wonbin1: {
+      type: 'chat', thread: 'wonbin', title: '원빈', icon: '원',
+      msgs: [
+        ['원빈', '준비하고 있는데 타로형 심심하다고 계속 연락와'],
+        ['원빈', '형좀 맡아봐'],
+      ],
+      choice: { options: [{ text: '내가?', next: 'p_wonbin2' }] },   // '내가?' 전송
+    },
+    p_wonbin2: {
+      type: 'chat', thread: 'wonbin', title: '원빈', icon: '원',
+      msgs: [
+        ['원빈', '아 전화왔잖아'],
+        ['원빈', 'ㅏㅣㅏㅣㅏㅣ어떡하지'],
+      ],
+      choice: { options: [{ text: '들키지 말고 받아', reply: false, next: 'c_wonbin1' }] },
+    },
+    c_wonbin1: { type: 'clip', src: 'media/clips/wonbin1.mp4', next: 'p_wonbin3' },
+    // 영상 뒤 다시 문자: 내가 보낸 답장 2개는 이미 있음 → 원빈 문자 → 내 메시지 자동 전송
+    p_wonbin3: {
+      type: 'chat', thread: 'wonbin', title: '원빈', icon: '원',
+      pre: 2,
+      msgs: [
+        ['me', '일단 받아'],
+        ['me', '들키지 말고ㅋㅋㅋ'],
+        ['원빈', '아니 이 형 뭐 알고 전화한거 아니야?'],
+        ['me', '일단 평소처럼 통화해'],
+      ],
+      auto: 1000,
+      next: 'c_wonbin2',
+    },
+    // 건너뛰기 불가. 재생 중 원빈 문자가 위에 알림으로 → 19초 뒤 긴급상황: 3초 안에 알림 눌러 'ㄴㄴ 끊지마' 전송
+    c_wonbin2: {
+      type: 'clip', src: 'media/clips/wonbin2.mp4',
+      noSkip: true,
+      route: { title: '긴급상황!', thumb: 'media/images/thumbs/c_wonbin2.jpg' },
+      texts: {
+        from: '원빈', thread: 'wonbin',
+        list: [
+          [1, '와보라는데?'],
+          [4, '같이 밥먹자그러잖아'],
+          [8, '아니 일로 온다는데?'],
+          [10, '진짜 오면 어떡해'],
+          [12, '아니 이 형 안 끊어'],
+          [14, '아 걍 끊을까?'],
+          [19, '걍 끊는다?'],
+        ],
+      },
+      urgent: {
+        at: 19.6,
+        text: '원빈이에게 끊지 말라고 답장해주세요!',
+        placeholder: 'ㄴㄴ 끊지마', answer: 'ㄴㄴ 끊지마',   // 띄어쓰기는 상관없음
+        time: 3,   // 긴급상황 뜬 뒤 알림 누르고 입력·전송까지 3초
+        success: 'n_wonbin_ok', fail: 'c_wonbin3',
+      },
+    },
+
+    // 실패
+    c_wonbin3: { type: 'clip', src: 'media/clips/wonbin3.mp4', next: 'n_wonbin_fail' },
+    n_wonbin_fail: {
+      type: 'narration',
+      lines: ['수상하게 생각한 타로가 방을 급습해서 깜짝파티에 실패했다. 거의 다 왔는데….'],
+      next: 'e_bad_wonbin',
+    },
+    e_bad_wonbin: {
+      type: 'ending',
+      title: '또하꾸마',
+      route: { thumb: 'media/images/thumbs/e_bad_wonbin.jpg' },
+      desc: '좀 더 빠르게 원빈이를 말리는 게 좋겠다.',
+      bg: ['#2a2a3a', '#06060c'],
+      voice: {
+        name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
+        src: 'media/voices/bad_wonbin.m4a',   // voice_bad_wonbin 영상에서 소리만
+        subs: [[0, 99, '왜 안 나올까? 뭐하고 있을까?']],
+      },
+    },
+
+    // 성공
+    n_wonbin_ok: {
+      type: 'narration',
+      lines: ['원빈이를 성공적으로 진정시켰다. 잘 마무리한 뒤 연락 주기로 했다. 기다려보자.'],
+      next: 'p_wonbin5',
+    },
+    p_wonbin5: {
+      type: 'chat', thread: 'wonbin', title: '원빈', icon: '원',
+      notify: { from: '원빈', text: '준비 완료ㅋㅋㅋ' },   // 새 문자 알림 → 눌러서 열기
+      pre: 4,
+      msgs: [
+        ['me', 'ㄴㄴ 끊지마'],
+        ['me', '얘기 좀 하다가 다시 전화한다해'],
+        ['원빈', '알겠어'],
+        ['원빈', '전화 끊고 연락할게'],
+        ['원빈', '준비 완료ㅋㅋㅋ'],
+        ['원빈', '타로형 부르자'],
+      ],
+      auto: 1400,
+      next: 'c_wonbin4',
+    },
+    c_wonbin4: { type: 'clip', src: 'media/clips/wonbin4-2.mp4', next: 'n_wonbin_good' },
+    n_wonbin_good: {
+      type: 'narration',
+      lines: ['생일파티가 성공적이었다.', '쇼타로는 아주 신나 보인다!'],
+      next: 'e_good_wonbin',
+    },
+    e_good_wonbin: {
+      type: 'ending',
+      title: '댄스타임',
+      kind: 'good',
+      route: { thumb: 'media/images/thumbs/e_good_wonbin.jpg' },
+      desc: '원빈과 쇼타로 둘 다 많이 신나보인다.',
+      bg: ['#4a3a1a', '#0c0a04'],
+      voice: {
+        name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
+        src: null, duration: 3,   // ← 음성 받으면 연결
+        subs: [[0, 3, '(쇼타로의 한마디 — 추후 제공)']],
+      },
     },
 
     ...memberCall('소희', '', 'sohee'),

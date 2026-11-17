@@ -451,6 +451,7 @@
     const rate = ch ? (ch.rate ?? (ch.at != null ? 1 : CFG.loopRate ?? 0.5)) : 1;
     // 선택지 지점으로 바로 들어올 때: 끝에서 고르는 선택지면 처음부터 재생, 아니면 선택지 시점으로
     if (opts.atChoice && ch && !atEnd) P.seek(showAt);
+    if (opts.atChoice && sc.urgent) P.seek(Math.max(0, sc.urgent.at - 4));   // 루트에서 바로: 긴급상황 조금 전부터
 
     let holdT = null;
     const frame = () => {
@@ -479,6 +480,7 @@
           const finish = () => (onEnd ? onEnd() : go(resolve(sc.next)));
           // holdEnd: 마지막 프레임·마지막 자막 그대로 n초 멈췄다가 넘어감
           if (sc.mash) { P.pause(); startMash(id, sc.mash); }
+          else if (sc.urgent) P.pause();   // 긴급상황 답장 결과로 넘어감 (마지막 장면에서 멈춤)
           else if (sc.holdEnd) { P.pause(); holdT = setTimeout(finish, sc.holdEnd * 1000); }
           else finish();
         }
@@ -492,18 +494,143 @@
     return () => { cancelAnimationFrame(raf); clearTimeout(holdT); P.stop(); closeChoice(); };
   }
 
+  /* 영상 재생 중 문자 알림(위쪽 미리보기) + 긴급상황 답장
+     texts: { from, thread, list: [[초, '내용'], ...] }
+     urgent: { at, text, placeholder, answer, time, success, fail } → at초에 화면 dim + 알림 강조, time초 안에 알림 눌러 answer 를 쳐서 보내야 성공 */
+  function clipTexts(id, sc, P, opts) {
+    const my = token, T = sc.texts || { list: [] }, U = sc.urgent;
+    const from = T.from || '메시지', initial = [...from][0];
+    const hist = T.thread ? (state.threads[T.thread] ||= []) : null;
+    const wrap = document.createElement('div');
+    wrap.className = 'cnoti';
+    stage.append(wrap);
+    let shown = 0, urgentOn = false, sheet = null, input = null, done = false, raf = 0, t0 = 0, vvOff = null;
+    const recv = [];
+    const banner = (text, quiet) => {
+      wrap.querySelectorAll('.cn').forEach((b) => b.classList.add('old'));
+      [...wrap.querySelectorAll('.cn.old')].slice(0, -1).forEach((b) => b.remove());
+      const b = document.createElement('div');
+      b.className = 'cn';
+      b.innerHTML = `<div class="b-icon">${ICON.bubble}</div><div class="b-body"><div class="b-row"><b>${esc(from)}</b><span>지금</span></div><p></p></div>`;
+      $('p', b).textContent = text;
+      wrap.append(b);
+      requestAnimationFrame(() => b.classList.add('in'));
+      if (!quiet) { Sound.ding(); vibrate(120); }
+    };
+    // 루트에서 바로 들어온 경우: 이미 지난 알림은 소리 없이 마지막 것만
+    const skip = opts.atChoice && U ? Math.max(0, U.at - 4) : 0;
+    const tick = (t) => {
+      while (shown < T.list.length && t >= T.list[shown][0]) {
+        const [at, text] = T.list[shown++];
+        recv.push(text); hist?.push([from, text]);
+        if (at >= skip || shown === T.list.length || T.list[shown][0] > skip) banner(text, at < skip);
+      }
+      if (U && !urgentOn && t >= U.at) startUrgent();
+    };
+
+    function startUrgent() {
+      urgentOn = true;
+      state.checkpoint = { id, flags: { ...state.flags }, path: state.path.slice(), threads: JSON.parse(JSON.stringify(state.threads)) };
+      // 체크포인트는 알림이 쌓이기 전 상태로 (루트에서 다시 들어오면 영상에서 다시 받음)
+      if (hist) state.checkpoint.threads[T.thread] = hist.slice(0, hist.length - recv.length);
+      Route.snap(id, state.checkpoint);
+      const LIMIT = (U.time || 3) * 1000;
+      stage.classList.add('urgent');
+      const ov = document.createElement('div');
+      ov.className = 'ur-ov';
+      ov.innerHTML = `<div class="ur-box"><span class="ur-tag">🚨 긴급상황</span><p>${esc(U.text || '답장해주세요!')}</p>
+        <div class="ur-bar"><s></s></div><small>알림을 눌러서 답장!</small></div>`;
+      wrap.append(ov);
+      const last = wrap.querySelector('.cn:not(.old)');
+      last?.classList.add('hot');
+      Sound.buzz(); vibrate([300, 100, 300]);
+      // 답장 화면 (미리 만들어 두고 숨김 → 알림 누르는 순간 바로 키보드)
+      sheet = document.createElement('div');
+      sheet.className = 'ur-sheet';
+      sheet.innerHTML = `
+        <div class="ur-time"><s></s></div>
+        <div class="ur-head"><span class="back">${ICON.chev}</span><div class="m-av">${esc(initial)}</div><b>${esc(from)}</b></div>
+        <div class="ur-body">${recv.slice(-5).map((x) => `<div class="ur-b them"><span>${esc(x)}</span></div>`).join('')}</div>
+        <form class="ur-input"><span class="plus">${ICON.plus}</span>
+          <label class="field"><input type="text" placeholder="${esc(U.placeholder || '')}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send">
+          <button type="submit" class="send" aria-label="보내기">${ICON.up}</button></label></form>`;
+      document.body.append(sheet);
+      input = $('input', sheet);
+      const bars = [$('.ur-bar s', ov), $('.ur-time s', sheet)];
+      // 키보드가 올라오면 보이는 영역에 맞춤
+      const vv = window.visualViewport;
+      const fit = () => { if (vv) { sheet.style.top = vv.offsetTop + 'px'; sheet.style.height = vv.height + 'px'; } };
+      if (vv) { vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); vvOff = () => { vv.removeEventListener('resize', fit); vv.removeEventListener('scroll', fit); }; }
+      fit();
+      const open = (e) => {
+        e?.preventDefault?.();
+        if (done || sheet.classList.contains('open')) return;
+        sheet.classList.add('open');
+        input.focus();   // 누른 순간(사용자 동작 안)에 포커스해야 아이폰 키보드가 뜸
+        clearCtas();
+      };
+      (last || wrap).addEventListener('click', open);   // 클릭(손 뗄 때)에 포커스해야 아이폰 키보드가 확실히 뜸
+      input.addEventListener('input', () => sheet.classList.toggle('typed', !!input.value));
+      const norm = (x) => x.replace(/\s+/g, '');
+      $('form', sheet).addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (done) return;
+        if (norm(input.value) === norm(U.answer || U.placeholder || '')) finish(true);
+        else { sheet.classList.remove('wrong'); void sheet.offsetWidth; sheet.classList.add('wrong'); vibrate(80); }
+      });
+      $('.send', sheet).addEventListener('pointerdown', (e) => e.preventDefault());   // 보내기 눌러도 키보드 유지
+      t0 = performance.now();
+      const loop = () => {
+        raf = requestAnimationFrame(loop);
+        const left = Math.max(0, LIMIT - (performance.now() - t0));
+        bars.forEach((b) => { b.style.transform = `scaleX(${left / LIMIT})`; });
+        if (left <= 0) finish(false);
+      };
+      loop();
+    }
+
+    function finish(ok) {
+      if (done) return; done = true;
+      cancelAnimationFrame(raf);
+      Route.pick(id, ok ? 0 : 1);
+      if (ok) {
+        const b = document.createElement('div');
+        b.className = 'ur-b me pop'; b.innerHTML = '<span></span>';
+        b.firstChild.textContent = input.value.trim();
+        $('.ur-body', sheet).append(b);
+        input.value = ''; sheet.classList.remove('typed');
+        Sound.send();
+      } else {
+        Sound.buzz(); vibrate([200, 80, 200]);
+        sheet.classList.add('late'); wrap.classList.add('late');
+      }
+      input?.blur();
+      setTimeout(() => { if (my === token) go(resolve(ok ? U.success : U.fail)); }, ok ? 1100 : 1300);
+    }
+
+    return {
+      tick,
+      cleanup() {
+        cancelAnimationFrame(raf); vvOff?.(); input?.blur();
+        sheet?.remove(); wrap.remove(); stage.classList.remove('urgent');
+      },
+    };
+  }
+
   /* ---------- 클립 장면 (전체화면) ---------- */
   function playClip(id, sc, opts) {
-    const P = makePlayer(sc, { quick: !!opts.atChoice && !!(sc.choice || sc.mash) });   // 루트에서 바로: 썸네일 먼저 깔고 즉시 시작
+    const P = makePlayer(sc, { quick: !!opts.atChoice && !!(sc.choice || sc.mash || sc.urgent) });   // 루트에서 바로: 썸네일 먼저 깔고 즉시 시작
     // 영상 뒤 화면 전체: 같은 영상을 작게 그려서 흐리게 (CSS blur)
     const bgc = $('#clip-bg'), bgx = bgc.getContext('2d');
     bgx.clearRect(0, 0, bgc.width, bgc.height);
     const bgTimer = sc.src ? setInterval(() => {
       if (video.readyState >= 2) { try { bgx.drawImage(video, 0, 0, bgc.width, bgc.height); } catch {} }
     }, 1200) : null;   // 자주 그리면 폰에서 영상·소리가 버벅여서 가끔만 (배경은 흐려서 티 안 남)
-    const ctl = clipControls(sc, P);
-    const stop = runClip(id, sc, P, opts, { onTick: ctl.onTick, onChoice: ctl.choosing });
-    cleanup = () => { stop(); ctl.cleanup(); clearInterval(bgTimer); };
+    // noSkip: 일시정지·진행 바 없이 끝까지 (긴급상황 영상 등)
+    const ctl = sc.noSkip ? (scrub.hidden = true, { onTick: null, choosing: null, cleanup() {} }) : clipControls(sc, P);
+    const tx = sc.texts || sc.urgent ? clipTexts(id, sc, P, opts) : null;
+    const stop = runClip(id, sc, P, opts, { onTick: (t) => { ctl.onTick?.(t); tx?.tick(t); }, onChoice: ctl.choosing });
+    cleanup = () => { stop(); ctl.cleanup(); tx?.cleanup(); clearInterval(bgTimer); };
   }
 
   /* 영상 조작: 탭 → 일시정지/재생, 진행 바 끌어서 이동 (일반 클립·영상통화 공용) */
@@ -1590,7 +1717,7 @@
       seen.add(id);
       const sc = SC[id];
       // 루트에는 고를 게 2개 이상인 선택지만 (버튼 하나짜리는 건너뜀)
-      if ((sc.choice && sc.choice.options.length >= 2) || sc.mash || sc.type === 'mission') return { kind: 'choice', id };
+      if ((sc.choice && sc.choice.options.length >= 2) || sc.mash || sc.urgent || sc.type === 'mission') return { kind: 'choice', id };
       if (sc.type === 'ending') return { kind: 'ending', id };
       id = sc.choice ? sc.choice.options[0].next : sc.answer || sc.next;
     }
@@ -1600,6 +1727,7 @@
   // 루트에서 갈라지는 길: 선택지, 또는 연타 이벤트(성공/실패)
   const routeOptions = (sc) => sc.choice ? sc.choice.options
     : sc.type === 'mission' ? [{ text: '미션 성공', next: sc.success }, { text: '미션 실패', next: sc.fail }]
+    : sc.urgent ? [{ text: '답장 성공', next: sc.urgent.success }, { text: '답장 실패', next: sc.urgent.fail }]
     : [{ text: '연타 성공', next: sc.mash.success }, { text: '연타 실패', next: sc.mash.fail }];
 
   function routeGraph() {
@@ -1903,7 +2031,7 @@
     };
     const mediaOf = (sc) => [...[].concat(sc.src || []), sc.avatar, sc.voice?.src, sc.voice?.avatar, sc.route?.thumb, sc.polaroid,
       ...(sc.type === 'mission' ? MISSION_IMGS : [])];
-    const nextsOf = (sc) => [sc.next, sc.answer, sc.decline, sc.success, sc.fail, sc.mash?.success, sc.mash?.fail, ...(sc.choice?.options || []).map((o) => o.next)]
+    const nextsOf = (sc) => [sc.next, sc.answer, sc.decline, sc.success, sc.fail, sc.mash?.success, sc.mash?.fail, sc.urgent?.success, sc.urgent?.fail, ...(sc.choice?.options || []).map((o) => o.next)]
       .filter((n) => typeof n === 'string' && SC[n]);
     return {
       add,
