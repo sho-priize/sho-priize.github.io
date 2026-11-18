@@ -818,8 +818,8 @@ window.STORY = {
     m_alone: {
       type: 'mission',
       time: 6,    // 제한 시간(초)
-      taps: 6,    // 1단계: 1초 안에 몇 번 연타
-      hold: 2,    // 2단계: 심지에 대고 있을 시간(초)
+      taps: 9,    // 1단계: 1초 안에 몇 번 연타
+      hold: 1.5,    // 2단계: 심지에 대고 있을 시간(초)
       route: { title: '6초 미션', thumb: 'media/images/thumbs/m_alone.jpg' },
       success: 'c_alone_good',
       fail: 'n_alone_fail',
@@ -844,7 +844,7 @@ window.STORY = {
         subs: [[0, 3, '(쇼타로의 한마디 — 추후 제공)']],
       },
     },
-    c_alone_good: { type: 'clip', src: 'media/clips/shotaro_alone.mp4', next: 'e_good_alone' },
+    c_alone_good: { type: 'clip', src: 'media/clips/shotaro_alone.mp4', next: 'e_good_alone' },   // 원본을 0.8배 속도로 늘린 파일
     e_good_alone: {
       type: 'ending',
       title: '쇼짱 생일 축하해!',

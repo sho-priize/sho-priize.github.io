@@ -561,7 +561,7 @@
         <div class="ur-head"><span class="back">${ICON.chev}</span><div class="m-av">${esc(initial)}</div><b>${esc(from)}</b></div>
         <div class="ur-body">${recv.slice(-5).map((x) => `<div class="ur-b them"><span>${esc(x)}</span></div>`).join('')}</div>
         <form class="ur-input"><span class="plus">${ICON.plus}</span>
-          <label class="field"><input type="text" lang="ko" placeholder="${esc(U.placeholder || '')}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send">
+          <label class="field"><span class="ur-ghost"></span><input type="text" lang="ko" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send">
           <button type="submit" class="send" aria-label="보내기">${ICON.up}</button></label></form>`;
       document.body.append(sheet);
       input = $('input', sheet);
@@ -579,7 +579,25 @@
         clearCtas();
       };
       (last || wrap).addEventListener('click', open);   // 클릭(손 뗄 때)에 포커스해야 아이폰 키보드가 확실히 뜸
-      input.addEventListener('input', () => sheet.classList.toggle('typed', !!input.value));
+      // 타자연습처럼: 입력창에 보낼 글자가 흐리게 계속 보이고, 친 글자는 맞으면 흰색 / 틀리면 빨간색
+      const target = U.placeholder || U.answer || '', ghost = $('.ur-ghost', sheet);
+      let composing = false;
+      const paint = () => {
+        const v = input.value, n = Math.max(v.length, target.length);
+        let html = '';
+        for (let k = 0; k < n; k++) {
+          if (k >= v.length) { html += `<i class="g">${esc(target[k])}</i>`; continue; }
+          const last = k === v.length - 1;
+          const ok = v[k] === target[k] || (composing && last && target[k] && target[k] !== ' ');   // 조합 중인 마지막 글자는 판정 보류
+          html += `<i class="${ok ? 't' : 'x'}">${v[k] === ' ' ? '&nbsp;' : esc(v[k])}</i>`;
+        }
+        ghost.innerHTML = html.replace(/<i class="g"> <\/i>/g, '<i class="g">&nbsp;</i>');
+        sheet.classList.toggle('typed', !!v);
+      };
+      input.addEventListener('compositionstart', () => { composing = true; });
+      input.addEventListener('compositionend', () => { composing = false; paint(); });
+      input.addEventListener('input', paint);
+      paint();
       const norm = (x) => x.replace(/\s+/g, '');
       $('form', sheet).addEventListener('submit', (e) => {
         e.preventDefault();
@@ -608,7 +626,7 @@
         b.firstChild.textContent = input.value.trim();
         $('.ur-body', sheet).append(b);
         hist?.push(['me', b.textContent]);
-        sheet.classList.add('sent');
+        sheet.classList.add('sent'); sheet.classList.remove('wrong');
         input.value = ''; sheet.classList.remove('typed');
         Sound.send();
         input.blur();
