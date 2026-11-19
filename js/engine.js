@@ -90,10 +90,21 @@
 
   const Sound = (() => {
     let ctx = null;
+    let unlocked = false;
     const ac = () => {
-      if (!ctx) { const C = window.AudioContext || window.webkitAudioContext; if (C) ctx = new C(); }
+      if (!ctx) {
+        const C = window.AudioContext || window.webkitAudioContext;
+        if (C) {
+          ctx = new C();
+          // 아이폰: 영상 소리·전화·앱 전환 뒤 효과음 엔진이 '중단'되는 경우 → 다시 켬
+          ctx.onstatechange = () => { if (unlocked && ctx.state !== 'running' && ctx.state !== 'closed') ctx.resume?.().catch(() => {}); };
+        }
+      }
+      // 소리 낼 때마다 멈춰 있으면 깨움 (멈춘 동안 예약한 소리는 깨어나면 재생됨)
+      if (ctx && unlocked && ctx.state !== 'running') { try { ctx.resume().catch(() => {}); } catch {} }
       return ctx;
     };
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) ac(); });
     const note = (f, at, dur, vol = .15, type = 'sine') => {
       const c = ac(); if (!c || muted) return;
       const o = c.createOscillator(), g = c.createGain(), t = c.currentTime + at;
@@ -132,6 +143,7 @@
     return {
       unlock() {
         try {
+          unlocked = true;
           const c = ac(); if (!c) return;
           Object.values(S).forEach(load);
           if (c.state !== 'running') c.resume();   // 'suspended' / 'interrupted'(전화·앱 전환 후) 모두 다시 켬
@@ -169,8 +181,9 @@
       click() {
         const now = performance.now();
         const c = ac(), buf = buffers[S.click];
-        if (muted || !c || !buf || buf === 'loading' || now - lastClick < 40) return;
+        if (muted || !c || now - lastClick < 40) return;
         lastClick = now;
+        if (!buf || buf === 'loading') { load(S.click); note(2400, 0, .03, .05, 'square'); return; }   // 파일 아직이면 짧은 합성음
         const n = c.createBufferSource(), g = c.createGain();
         n.buffer = buf; g.gain.value = .55;
         n.connect(g); g.connect(c.destination);
@@ -249,10 +262,16 @@
     // 지금 영상이 끝까지 받아질 만큼 되면(또는 6초 뒤) 다음 장면들 미리 받기 → 지금 영상과 인터넷을 나눠 쓰지 않게
     const playingClip = !video.hidden && video.getAttribute('src') && !video.getAttribute('src').startsWith('blob:');
     if (playingClip) {
-      let fired = false;
-      const ahead = () => { if (fired || my !== token) return; fired = true; Preload.ahead(id); };
-      video.addEventListener('canplaythrough', ahead, { once: true });
-      setTimeout(ahead, 6000);
+      // 지금 영상이 끝까지 다 받아진 뒤에만 다음 영상 미리받기 시작 (같이 받으면 폰에서 영상·노래가 버벅임)
+      const t0 = performance.now();
+      const check = () => {
+        if (my !== token) return;
+        const b = video.buffered, d = video.duration;
+        const full = b.length && isFinite(d) && b.end(b.length - 1) >= d - 0.3;
+        if (full || performance.now() - t0 > 30000) Preload.ahead(id);
+        else setTimeout(check, 700);
+      };
+      setTimeout(check, 700);
     } else Preload.ahead(id);
   }
 
@@ -633,7 +652,7 @@
         // 보낸 뒤 원빈 답장 받기 (replies) → 그다음 장면
         (async () => {
           const body = $('.ur-body', sheet), pause = (ms) => new Promise((r) => setTimeout(r, ms));
-          await pause(600);
+          await pause((U.repliesDelay ?? .6) * 1000);
           for (const text of U.replies || []) {
             if (my !== token) return;
             const ty = document.createElement('div');
@@ -1740,7 +1759,7 @@
       if (good) Confetti.start($('.end-fx', endingEl));
       Sound.shutter(); vibrate(40);
       const intro = $('.pola-intro', endingEl);
-      introT = setTimeout(showCard, 5600);   // 사진이 다 드러난 뒤 카드로
+      introT = setTimeout(showCard, 2600);   // 1.5초 만에 사진이 다 드러나고 잠깐 본 뒤 카드로
       intro.onclick = () => { if (!introT) return; clearTimeout(introT); intro.classList.add('skip'); showCard(); };
     } else if (sc.src) {
       const check = () => {
@@ -2129,14 +2148,20 @@
     const MAX = 7;                // 동시에 들고 있을 영상 수
     const imgs = new Set();
     const isVideo = (u) => /\.(mp4|mov|m4v|webm)(\?|$)/i.test(u);
+    const queue = []; let active = 0;
+    const pump = () => {
+      while (active < 2 && queue.length) { active++; queue.shift()().finally(() => { active--; pump(); }); }
+    };
     const add = (url) => {
       if (!url) return;
       if (/\.(jpe?g|png|webp|gif)$/i.test(url)) { if (!imgs.has(url)) { imgs.add(url); new Image().src = url; } return; }
       if (!isVideo(url) || blobs.has(url)) return;
       const ctl = new AbortController();
-      const job = fetch(url, { signal: ctl.signal }).then((r) => { if (!r.ok) throw 0; return r.blob(); })
-        .then((b) => { const u = URL.createObjectURL(b); blobs.set(url, u); ctls.delete(url); return u; })
-        .catch(() => { blobs.delete(url); ctls.delete(url); const i = order.indexOf(url); if (i >= 0) order.splice(i, 1); });
+      // 한 번에 2개씩만 받음 (여러 개 동시에 받으면 지금 재생 중인 소리·영상이 끊김)
+      const job = new Promise((done) => queue.push(() => fetch(url, { signal: ctl.signal }).then((r) => { if (!r.ok) throw 0; return r.blob(); })
+        .then((b) => { const u = URL.createObjectURL(b); blobs.set(url, u); ctls.delete(url); done(u); return u; })
+        .catch(() => { blobs.delete(url); ctls.delete(url); const i = order.indexOf(url); if (i >= 0) order.splice(i, 1); done(undefined); })));
+      pump();
       blobs.set(url, job); ctls.set(url, ctl);
       order.push(url);
       while (order.length > MAX) {

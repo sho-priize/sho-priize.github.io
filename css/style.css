@@ -618,13 +618,13 @@ html:not(.dev) #ph .ph-label { display: none; }
 .pi-flash { position: absolute; inset: 0; background: #fff; opacity: 0; animation: piFlash .6s ease-out both; }
 @keyframes piFlash { 0% { opacity: .85; } 100% { opacity: 0; } }
 .pi-photo { position: relative; width: min(82cqw, 360px); rotate: -2deg; filter: drop-shadow(0 16px 30px rgba(0,0,0,.55));
-  animation: piIn .7s cubic-bezier(.2,1.2,.4,1) both; }
+  animation: piIn .45s cubic-bezier(.2,1.2,.4,1) both; }
 .pi-photo img { display: block; width: 100%; }
-/* 아무것도 안 찍힌 필름 면 → 천천히 걷히며 사진이 드러남 */
-.pi-dev { position: absolute; left: 6.7%; top: 8.36%; width: 71.2%; height: 84.36%; background: linear-gradient(160deg, rgba(46,49,56,.96), rgba(34,37,43,.96));
-  -webkit-backdrop-filter: blur(8px) sepia(.5); backdrop-filter: blur(8px) sepia(.5); animation: piDev 4.4s cubic-bezier(.5,0,.6,1) .5s forwards; }
-@keyframes piIn { from { opacity: 0; transform: translateY(24px) scale(.94); } to { opacity: 1; transform: none; } }
-@keyframes piDev { 0% { opacity: 1; } 35% { opacity: .85; } 100% { opacity: 0; } }
+/* 찍힌 직후 프레임 안은 어둡게(살짝 흐림) → 1.5초 동안 서서히 밝아지며 사진이 드러남 */
+.pi-dev { position: absolute; left: 6.7%; top: 8.36%; width: 71.2%; height: 84.36%; background: rgba(8,8,10,.94);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: piDev 1.5s cubic-bezier(.3,.1,.4,1) .15s forwards; }
+@keyframes piIn { from { opacity: 0; transform: translateY(16px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes piDev { from { opacity: 1; } to { opacity: 0; } }
 .pola-intro.skip .pi-dev { animation: none; opacity: 0; transition: opacity .3s; }
 .pola-intro.flying .pi-flash { display: none; }
 .pola-intro.flying .pi-dev { animation: none; opacity: 0; }
