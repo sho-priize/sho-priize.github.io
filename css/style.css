@@ -721,3 +721,6 @@ html:not(.dev) #ph .ph-label { display: none; }
 .c-timer.quick i { height: 8px; border-radius: 8px; }
 .c-timer.quick i::after { background: #ff5d6c; }
 #choices.timeout .opt { opacity: .35; }
+.ur-body { overflow-y: auto; justify-content: flex-start; }
+.ur-body > :first-child { margin-top: auto; }
+.ur-b span img { display: block; max-width: 160px; border-radius: 12px; }

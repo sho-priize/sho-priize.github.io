@@ -552,7 +552,7 @@ window.STORY = {
       ],
       choice: {
         options: [
-          { text: '더 올려달라고 한다', reply: false, next: 'p_sc4' },
+          { text: '더 올려달라고 한다', reply: '아 좀만 더 올리자', next: 'p_sc4' },
           { text: '음.. 충분하다', reply: false, next: 'n_sc_good' },
         ],
       },
@@ -567,7 +567,7 @@ window.STORY = {
       ],
       choice: {
         options: [
-          { text: '더 올려달라고 한다', reply: false, next: 'p_sc5' },
+          { text: '더 올려달라고 한다', reply: '쫌만 더', next: 'p_sc5' },
           { text: '음.. 충분하다', reply: false, next: 'n_sc_good' },
         ],
       },
@@ -619,7 +619,7 @@ window.STORY = {
         ['성찬', '그건 나 아닌데?'],
       ],
       choice: {
-        head: '1초만에 선택하세요!',
+        head: '빨리 판단하세요!',
         timeout: 1, timeoutNext: 'p_sc_bad2',   // 1초 지나면 선택 못 한 걸로
         options: [{ text: '광란의 생일파티로 번복한다', reply: '제일 신나는 역대급 생일파티로 부탁해', next: 'p_sc_good1' }],
       },

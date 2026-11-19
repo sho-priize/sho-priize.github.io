@@ -556,6 +556,15 @@
       if (U && !urgentOn && t >= U.at) startUrgent();
     };
 
+    // 답장 화면에도 이 대화방의 지난 문자 기록을 그대로 (맨 아래가 보이게)
+    function urHistory() {
+      const list = hist ? hist.flatMap((e) => (e.scene ? SC[e.scene].msgs || [] : [e])) : recv.map((x) => [from, x]);
+      return list.map(([who, m]) => {
+        const body = typeof m === 'string' ? esc(m)
+          : m.img ? `<img src="${m.img}" alt="">` : m.thumb ? `<img src="${m.thumb}" alt="">` : m.voice ? '🎤 음성 메시지' : '';
+        return `<div class="ur-b ${who === 'me' ? 'me' : 'them'}"><span>${body}</span></div>`;
+      }).join('');
+    }
     function startUrgent() {
       urgentOn = true;
       state.checkpoint = { id, flags: { ...state.flags }, path: state.path.slice(), threads: JSON.parse(JSON.stringify(state.threads)) };
@@ -578,11 +587,12 @@
       sheet.innerHTML = `
         <div class="ur-time"><s></s></div>
         <div class="ur-head"><span class="back">${ICON.chev}</span><div class="m-av">${esc(initial)}</div><b>${esc(from)}</b></div>
-        <div class="ur-body">${recv.slice(-5).map((x) => `<div class="ur-b them"><span>${esc(x)}</span></div>`).join('')}</div>
+        <div class="ur-body">${urHistory()}</div>
         <form class="ur-input"><span class="plus">${ICON.plus}</span>
           <label class="field"><span class="ur-ghost"></span><input type="text" lang="ko" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send">
           <button type="submit" class="send" aria-label="보내기">${ICON.up}</button></label></form>`;
       document.body.append(sheet);
+      const ub = $('.ur-body', sheet); requestAnimationFrame(() => { ub.scrollTop = ub.scrollHeight; });
       input = $('input', sheet);
       const bars = [$('.ur-bar s', ov), $('.ur-time s', sheet)];
       // 키보드가 올라오면 보이는 영역에 맞춤
@@ -643,7 +653,7 @@
         const b = document.createElement('div');
         b.className = 'ur-b me pop'; b.innerHTML = '<span></span>';
         b.firstChild.textContent = input.value.trim();
-        $('.ur-body', sheet).append(b);
+        $('.ur-body', sheet).append(b); $('.ur-body', sheet).scrollTop = 1e6;
         hist?.push(['me', b.textContent]);
         sheet.classList.add('sent'); sheet.classList.remove('wrong');
         input.value = ''; sheet.classList.remove('typed');
@@ -657,13 +667,13 @@
             if (my !== token) return;
             const ty = document.createElement('div');
             ty.className = 'ur-b them typing pop'; ty.innerHTML = '<span><i></i><i></i><i></i></span>';
-            body.append(ty);
+            body.append(ty); body.scrollTop = body.scrollHeight;
             await pause(Math.min(1300, 550 + text.length * 45));
             if (my !== token) return;
             ty.remove();
             const r = document.createElement('div');
             r.className = 'ur-b them pop'; r.innerHTML = '<span></span>'; r.firstChild.textContent = text;
-            body.append(r); hist?.push([from, text]); Sound.pop();
+            body.append(r); hist?.push([from, text]); Sound.pop(); body.scrollTop = body.scrollHeight;
             await pause(450);
           }
           await pause(900);
