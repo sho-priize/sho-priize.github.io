@@ -1029,9 +1029,21 @@
       v.addEventListener('ended', close);
       ov.addEventListener('click', (e) => { e.stopPropagation(); close(); });
     };
+    // 사진 메시지: 누르면 화면 가득 크게, 다시 누르면 닫힘
+    const openPhoto = (b) => {
+      const src = $('img', b)?.getAttribute('src'); if (!src) return;
+      const ov = document.createElement('div');
+      ov.className = 'vviewer photo';
+      ov.innerHTML = `<img src="${src}" alt=""><button class="vv-x" aria-label="닫기">✕</button>`;
+      pscreen.append(ov); stage.classList.add('viewing');   // 크게 보는 동안 선택지 가림
+      ov.addEventListener('click', (e) => { e.stopPropagation(); stage.classList.remove('viewing'); ov.classList.add('out'); setTimeout(() => ov.remove(), 250); });
+    };
     const onVidTap = (e) => {
+      if (e.target.closest('.vviewer')) return;
       const b = e.target.closest('.bub.vid');
-      if (b && alive && !e.target.closest('.vviewer')) { e.stopPropagation(); openVideo(b); }
+      if (b && alive) { e.stopPropagation(); openVideo(b); return; }
+      const ph = e.target.closest('.bub.pic');
+      if (ph && alive) { e.stopPropagation(); openPhoto(ph); }
     };
     pscreen.addEventListener('click', onVidTap);
 
@@ -1121,6 +1133,7 @@
     };
 
     const run = async (body, prev) => {
+      if (sc.wait && !instant) { await pause(sc.wait); if (!alive) return; }   // 답장 오기 전 잠깐 텀
       for (const [k, [who, text]] of (sc.msgs || []).entries()) {
         if (!alive) return;
         if (instant || k < (sc.pre || 0)) { body.append(bubble(who, text, prev)); prev = who; continue; }
@@ -1229,7 +1242,7 @@
     cleanup = () => {
       alive = false; timers.forEach(clearTimeout); closeChoice();
       if (tapNext) pstage.removeEventListener('click', tapNext);
-      pscreen.removeEventListener('click', onVidTap);
+      pscreen.removeEventListener('click', onVidTap); stage.classList.remove('viewing');
     };
   }
 
@@ -1656,7 +1669,7 @@
           </div>
           <div class="end-main">
             <h1><i></i><span>${esc(sc.title)}</span><i></i></h1>
-            <p class="end-desc">${esc(sc.desc || '').replace(/\n/g, '<br>')}</p>
+            ${sc.desc ? `<p class="end-desc">${esc(sc.desc).replace(/\n/g, '<br>')}</p>` : ''}
           </div>
           <div class="end-actions">
             ${v ? `<button class="voice-pill" data-act="voice">

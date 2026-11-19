@@ -868,7 +868,111 @@ window.STORY = {
         [1, 3.5, '찬영아? 생일파티 준비 같이 할까?'],
         [3.5, 99, '...들었니?'],
       ],
-      next: 'n_tbd',
+      next: 'n_anton1',
+    },
+
+    /* ── 앤톤 갈래 ── */
+    n_anton1: { type: 'narration', lines: ['찬영이가 적극 협조하기로 했다. 행운을 빌어보자.'], next: 'c_anton1' },
+    c_anton1: { type: 'clip', src: 'media/clips/anton1.mp4', next: 'n_anton2' },
+    n_anton2: {
+      type: 'narration',
+      lines: ['찬영이는 선물때문에 고민이 많은것같다..', '잘 해결했는지 연락해보자'],
+      choice: { options: [{ text: '진행상황을 물어본다', next: 'p_anton1' }] },
+    },
+    // 앤톤 개인 문자 (사진은 눌러서 크게 보기)
+    p_anton1: {
+      type: 'chat', thread: 'anton', title: '앤톤', icon: '앤',
+      route: { title: '사진 더? 재밌게 놀아?', thumb: 'media/images/thumbs/p_anton1.jpg' },
+      msgs: [
+        ['me', '준비 잘하고 있어?'],
+        ['앤톤', '형들이 하고 있는데 ㅋㅋㅋ'],
+        ['앤톤', '우린 데이트중'],
+        ['앤톤', '타로형 못보게 내가 데리고 나왔어요 ㅋㅋ'],
+        ['앤톤', { img: 'media/images/malgang1.jpg' }],
+        ['앤톤', { img: 'media/images/malgang2.jpg' }],
+      ],
+      choice: {
+        options: [
+          { text: '귀여우니까 사진 더 보내', next: 'p_anton_bad1' },   // 전송
+          { text: '재밌게 놀아', next: 'p_anton_good1' },              // 전송
+        ],
+      },
+    },
+
+    // 재밌게 놀아 → 굿
+    p_anton_good1: {
+      type: 'chat', thread: 'anton', title: '앤톤', icon: '앤',
+      msgs: [['me', '괜히 사진보내다 들키지말구ㅋㅋ']],
+      auto: 1100,
+      next: 'n_anton_good',
+    },
+    n_anton_good: {
+      type: 'narration',
+      lines: ['그냥 노는 거 아닌가? 어쨌든 타로에게 들키지는 않을 것 같다..'],
+      next: 'p_anton_good2',
+    },
+    p_anton_good2: {
+      type: 'chat', thread: 'anton', title: '앤톤', icon: '앤',
+      notify: { from: '앤톤', text: '이제 감' },   // 새 문자 알림 → 눌러서 열기
+      dateLabel: 'now',
+      msgs: [
+        ['앤톤', '이제 감'],
+        ['앤톤', '성공 😎'],
+      ],
+      auto: 1400,
+      next: 'c_anton_good',
+    },
+    c_anton_good: { type: 'clip', src: 'media/clips/anton2-3.mp4', next: 'e_good_anton' },   // anton2(8초부터) + anton3 이어 붙인 파일
+    e_good_anton: {
+      type: 'ending',
+      title: '아이고 사랑해~♡',
+      kind: 'good',
+      route: { thumb: 'media/images/thumbs/e_good_anton.jpg' },
+      desc: '',
+      bg: ['#4a3a1a', '#0c0a04'],
+      voice: {
+        name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
+        src: 'media/voices/good_anton.m4a',   // voice_good_anton 에서 소리만
+        subs: [[0, 99, '진짜 예상을 못했는데.. 제가 이렇게 받을 줄 몰랐어요.. 아이고 사랑 해~♡']],
+      },
+    },
+
+    // 사진 더 보내 → 배드
+    p_anton_bad1: {
+      type: 'chat', thread: 'anton', title: '앤톤', icon: '앤',
+      msgs: [
+        ['앤톤', { img: 'media/images/malgang3.jpg' }],
+        ['앤톤', { img: 'media/images/malgang4.jpg' }],
+        ['앤톤', 'kawaiii'],
+      ],
+      choice: { options: [{ text: '그러다 들킨다', next: 'p_anton_bad2' }] },   // 전송
+    },
+    p_anton_bad2: {
+      type: 'chat', thread: 'anton', title: '앤톤', icon: '앤',
+      wait: 2000,   // 보내고 2초 뒤에 답장
+      msgs: [
+        ['앤톤', '아…'],
+        ['앤톤', '타로형 봄..'],
+      ],
+      choice: { options: [{ text: '아….', reply: false, next: 'n_anton_bad' }] },
+    },
+    n_anton_bad: {
+      type: 'narration',
+      lines: ['정확히 걱정하던 일이 벌어졌다', '찬영이가 들켜버렸다..'],
+      next: 'c_anton4',
+    },
+    c_anton4: { type: 'clip', src: 'media/clips/anton4.mp4', next: 'e_bad_anton' },
+    e_bad_anton: {
+      type: 'ending',
+      title: '너는 아직 어리다',
+      route: { thumb: 'media/images/thumbs/e_bad_anton.jpg' },
+      desc: 'gomen…',
+      bg: ['#2a3a4a', '#06080c'],
+      voice: {
+        name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
+        src: 'media/voices/bad_anton.m4a',   // voice_bad_anton 에서 소리만
+        subs: [[0, 99, '찬영이 괜찮아?']],
+      },
     },
 
     // 아직 안 짜인 구간 (임시)

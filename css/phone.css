@@ -365,3 +365,6 @@
 .vv-x { position: absolute; top: calc(14px + var(--safe-t, 0px)); right: 14px; width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(255,255,255,.18); color: #fff; font-size: 16px; }
 @keyframes vvIn { from { opacity: 0; transform: scale(.96); } }
 @keyframes vvOut { to { opacity: 0; transform: scale(.96); } }
+.vviewer.photo img { width: 100%; height: 100%; object-fit: contain; }
+.bub.pic:not(.vid) span { cursor: zoom-in; }
+#stage.viewing #choices, #stage.viewing #hint { visibility: hidden; }
