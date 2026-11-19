@@ -1781,15 +1781,19 @@
     intro.classList.add('flying');   // 다시 붙일 때 플래시·현상 효과가 처음부터 재생되지 않게
     endingEl.append(intro);
     art.style.opacity = '0';
-    const a = art.getBoundingClientRect(), p = photo.getBoundingClientRect();
-    const s = a.width / p.width;
-    const dx = (a.left + a.width / 2) - (p.left + p.width / 2), dy = (a.top + a.height / 2) - (p.top + p.height / 2);
     photo.style.animation = 'none';
+    // 중심점끼리 맞춤 (회전해도 중심은 그대로). 크기는 회전 전 실제 너비로 비율 계산
+    const a = art.getBoundingClientRect(), p = photo.getBoundingClientRect();
+    const s = art.offsetWidth / photo.offsetWidth;
+    const dx = (a.left + a.width / 2) - (p.left + p.width / 2), dy = (a.top + a.height / 2) - (p.top + p.height / 2);
+    // transform 대신 translate/scale 속성: 회전과 섞여 옆으로 틀어지는 것 방지 (이동은 화면 기준)
     const anim = photo.animate([
-      { transform: 'none', rotate: '-2deg' },
-      { transform: `translate(${dx}px, ${dy}px) scale(${s})`, rotate: '-3deg' },
+      { translate: '0px 0px', scale: '1', rotate: '-2deg' },
+      { translate: `${dx}px ${dy}px`, scale: `${s}`, rotate: '-3deg' },
     ], { duration: 750, easing: 'cubic-bezier(.45,0,.2,1)', fill: 'forwards' });
-    const done = () => { art.style.opacity = ''; intro.remove(); };
+    const done = () => {
+      art.style.opacity = ''; intro.remove();
+    };
     anim.onfinish = done; setTimeout(done, 1200);
   }
 
@@ -2348,7 +2352,7 @@
   // 폰트가 준비된 뒤 첫 화면 표시 (기본 글꼴로 잠깐 보이는 것 방지)
   Preload.add(CFG.titleMedia); Preload.add(CFG.phone?.selfImage);
   ['media/images/end_good.png', 'media/images/end_bad.png', 'media/images/voicephoto.jpg'].forEach(Preload.add);
-  Object.values(SC).forEach((x) => x.polaroid && Preload.add(x.polaroid));   // 엔딩 그림은 처음에 받아둠
+  Object.values(SC).forEach((x) => x.polaroid && Preload.add(x.polaroid)); Preload.add('media/images/alone/pola_blur.jpg');   // 엔딩 그림은 처음에 받아둠
   Promise.race([document.fonts?.ready, wait(2500)]).then(() => {
     fromHash(true);
     if (!gate) requestAnimationFrame(() => fade.classList.remove('on'));

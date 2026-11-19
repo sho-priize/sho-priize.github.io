@@ -588,7 +588,7 @@ window.STORY = {
     },
 
     // 실패
-    c_wonbin3: { type: 'clip', src: 'media/clips/wonbin3.mp4', next: 'n_wonbin_fail' },
+    c_wonbin3: { type: 'clip', src: 'media/clips/wonbin3-4.mp4', next: 'n_wonbin_fail' },   // wonbin3 + wonbin4 를 이어 붙인 파일
     n_wonbin_fail: {
       type: 'narration',
       lines: ['수상하게 생각한 타로가 방을 급습해서 깜짝파티에 실패했다. 거의 다 왔는데….'],

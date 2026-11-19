@@ -621,10 +621,10 @@ html:not(.dev) #ph .ph-label { display: none; }
   animation: piIn .45s cubic-bezier(.2,1.2,.4,1) both; }
 .pi-photo img { display: block; width: 100%; }
 /* 찍힌 직후 프레임 안은 어둡게(살짝 흐림) → 1.5초 동안 서서히 밝아지며 사진이 드러남 */
-.pi-dev { position: absolute; left: 6.7%; top: 8.36%; width: 71.2%; height: 84.36%; background: rgba(8,8,10,.94);
-  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: piDev 1.5s cubic-bezier(.3,.1,.4,1) .15s forwards; }
+.pi-dev { position: absolute; left: 6.7%; top: 8.36%; width: 71.2%; height: 84.36%; background: url(../media/images/alone/pola_blur.jpg) center / 100% 100%; opacity: .96;
+  animation: piDev 1.5s cubic-bezier(.3,.1,.4,1) .15s forwards; }
 @keyframes piIn { from { opacity: 0; transform: translateY(16px) scale(.96); } to { opacity: 1; transform: none; } }
-@keyframes piDev { from { opacity: 1; } to { opacity: 0; } }
+@keyframes piDev { from { opacity: .96; } to { opacity: 0; } }
 .pola-intro.skip .pi-dev { animation: none; opacity: 0; transition: opacity .3s; }
 .pola-intro.flying .pi-flash { display: none; }
 .pola-intro.flying .pi-dev { animation: none; opacity: 0; }
