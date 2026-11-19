@@ -1145,6 +1145,7 @@
       // 위로 스크롤해서 지난 메시지 볼 수 있게, 새 내용이 생기면 항상 맨 아래로
       const stick = () => { body.scrollTop = body.scrollHeight; };
       new MutationObserver(stick).observe(body, { childList: true });
+      body.addEventListener('load', stick, true);   // 사진·영상 썸네일이 늦게 뜨면서 높이가 늘어도 맨 아래 유지
       if (window.ResizeObserver) new ResizeObserver(stick).observe(body);
       requestAnimationFrame(stick);
       hist.push({ scene: id });
@@ -1778,7 +1779,7 @@
 
       endingEl.onclick = (e) => {
         const act = e.target.closest('[data-act]')?.dataset.act;
-        if (act === 'restart') { voiceStop(); go('@route'); }
+        if (act === 'restart') { voiceStop(); routeFocus = id; go('@route'); }   // 루트 화면에서 이 엔딩 위치를 보여줌
         if (act === 'share') shareEnding(sc, id);
         if (act === 'voice') { card.classList.add('listening'); $('.vc-sub', card).textContent = ''; playVoice(); }
         if (act === 'replay') playVoice();
@@ -1954,6 +1955,7 @@
     return { nodes, edges, width: cursor, depth: Math.max(...nodes.map((n) => n.depth)) };
   }
 
+  let routeFocus = null;   // 엔딩에서 '다시 하기' → 그 엔딩 위치로
   function showRoute() {
     teardown();
     currentId = null;
@@ -2091,11 +2093,14 @@
     // 처음엔 가장 오른쪽에 도달한 지점이 보이게
     requestAnimationFrame(() => {
       // 가장 깊이 도달한 지점이 화면 가운데쯤 오게
-      const last = nodes.filter(reached).sort((a, b) => b.cy - a.cy)[0];
+      const focus = routeFocus && nodes.find((n) => n.id === routeFocus && n.kind === 'ending');
+      routeFocus = null;
+      const last = focus || nodes.filter(reached).sort((a, b) => b.cy - a.cy)[0];
       const unit = stage.offsetWidth / 100;
       ox = map.offsetWidth / 2 - (last ? last.x * unit : 0);
-      oy = map.offsetHeight * .4 - (last ? last.cy * unit : 0);
+      oy = map.offsetHeight * (focus ? .5 : .4) - (last ? last.cy * unit : 0);
       clamp();
+      if (focus) routeEl.querySelector(`.r-node[data-key="${CSS.escape(focus.key)}"]`)?.classList.add('focus');
     });
 
     routeEl.onclick = (e) => {

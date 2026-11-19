@@ -530,12 +530,14 @@ window.STORY = {
       auto: 900,
       next: 'n_sc1',
     },
-    n_sc1: { type: 'narration', lines: ['음… 많이 시끄러워질 것 같다.', '그래도 재밌을 듯 하다.'], next: 'c_sc1' },
-    c_sc1: { type: 'clip', src: 'media/clips/sc1.mp4', next: 'p_sc2' },
+    n_sc1: { type: 'narration', lines: ['음… 많이 시끄러워질 것 같다.', '그래도 재밌을 듯 하다.'], next: 'p_sc2' },
     p_sc2: {
       type: 'chat', thread: 'sungchan', title: '성찬', icon: '성',
       route: { title: '더 올려? ①', thumb: 'media/images/thumbs/p_sc2.jpg' },
-      msgs: [['성찬', '어때 더 올려?']],
+      msgs: [
+        ['성찬', { video: 'media/clips/sc1.mp4', thumb: 'media/images/sc1.jpg' }],   // 영상 메시지로 와서 눌러서 보기
+        ['성찬', '어때 더 올려?'],
+      ],
       choice: {
         options: [
           { text: '더 올려달라고 한다', reply: '더 올려야지', next: 'p_sc3' },
@@ -605,8 +607,8 @@ window.STORY = {
       bg: ['#4a3a1a', '#0c0a04'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
-        src: 'media/voices/good_sc.m4a',   // voice_good_sc 에서 소리만
-        subs: [[0, 99, '애정 이빠이네']],
+        src: 'media/voices/good_anton.m4a',   // voice_good_anton 에서 소리만 (앤톤 엔딩과 서로 바꿈)
+        subs: [[0, 99, '진짜 예상을 못했는데.. 제가 이렇게 받을 줄 몰랐어요.. 아이고 사랑 해~♡']],
       },
     },
 
@@ -628,7 +630,7 @@ window.STORY = {
       type: 'chat', thread: 'sungchan', title: '성찬', icon: '성',
       msgs: [
         ['성찬', { voice: 'media/voices/sc6.m4a', dur: 2, subs: [] }],   // sc6 소리만
-        ['성찬', '그런 건 찬영이한테 가야지'],
+        ['성찬', '그런 건 내 전문분야가 아니지ㅣ'],
         ['성찬', '나는 신나는게 자신 있지'],
       ],
       auto: 1300,
@@ -1055,6 +1057,7 @@ window.STORY = {
       type: 'chat', thread: 'anton', title: '앤톤', icon: '앤',
       notify: { from: '앤톤', text: '이제 감' },   // 새 문자 알림 → 눌러서 열기
       dateLabel: 'now',
+      pre: 1,   // '이제 감' 은 열었을 때 이미 와 있음 → '성공 😎' 만 새로
       msgs: [
         ['앤톤', '이제 감'],
         ['앤톤', '성공 😎'],
@@ -1072,8 +1075,8 @@ window.STORY = {
       bg: ['#4a3a1a', '#0c0a04'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
-        src: 'media/voices/good_anton.m4a',   // voice_good_anton 에서 소리만
-        subs: [[0, 99, '진짜 예상을 못했는데.. 제가 이렇게 받을 줄 몰랐어요.. 아이고 사랑 해~♡']],
+        src: 'media/voices/good_sc.m4a',   // voice_good_sc 에서 소리만 (성찬 엔딩과 서로 바꿈)
+        subs: [[0, 99, '애정 이빠이네']],
       },
     },
 
