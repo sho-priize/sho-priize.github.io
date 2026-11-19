@@ -773,9 +773,11 @@
     choicesEl.className = `${layout === 'side' ? 'side ' : ''}n${options.length}`;
     const head = ch.head ? `<div class="c-head sub-style">${esc(ch.head)}</div>`   // 선택지 위 고정 문구
       : layout === 'side' && ch.prompt ? `<div class="c-head"><span>${ch.label || 'CHOICE'}</span>${esc(ch.prompt)}</div>` : '';
-    choicesEl.innerHTML = head + options.map((o, k) =>
+    const timerEl = ch.timeout ? `<div class="c-timer${ch.timeoutNext ? ' quick' : ''}"><i></i><span></span></div>` : '';
+    // 짧은 제한시간(timeoutNext)은 안내 문구 바로 아래·선택지 위에 굵은 진행 바
+    choicesEl.innerHTML = head + (ch.timeoutNext ? timerEl : '') + options.map((o, k) =>
       `<button class="opt${seen.includes(o.i) ? ' seen' : ''}" style="--i:${k}" data-k="${k}"><span class="txt">${esc(o.text)}</span><span class="arrow">${seen.includes(o.i) ? '◜◡◝' : '›'}</span></button>`
-    ).join('') + (ch.timeout ? '<div class="c-timer"><i></i><span></span></div>' : '');
+    ).join('') + (ch.timeoutNext ? '' : timerEl);
 
     let locked = false;
     const pick = (k) => {
@@ -798,18 +800,25 @@
     window.addEventListener('keydown', keyHandler);
 
     if (ch.timeout) {
-      const total = ch.timeout * 1000, t0 = performance.now();
+      const total = ch.timeout * 1000, t0 = performance.now() + (ch.timeoutNext ? 300 : 0);   // 버튼 올라오는 동안은 빼 줌
       const tEl = $('.c-timer', choicesEl), label = $('span', tEl);
       const def = Math.max(0, options.findIndex((o) => o.i === (ch.default ?? 0)));
       const update = () => {
-        const left = Math.max(0, total - (performance.now() - t0));
+        const left = Math.min(total, Math.max(0, total - (performance.now() - t0)));
         tEl.style.setProperty('--p', left / total);
-        label.textContent = pad2(Math.ceil(left / 1000));
+        label.textContent = ch.timeoutNext && total < 3000 ? (left / 1000).toFixed(1) : pad2(Math.ceil(left / 1000));
         tEl.classList.toggle('hurry', left <= 3000);
-        if (left <= 0) pick(def);
+        if (left > 0) return;
+        if (ch.timeoutNext) {   // 시간 안에 못 고르면 별도 장면으로 (선택지 아님)
+          if (locked) return;
+          locked = true; clearInterval(choiceTimer); clearCtas();
+          choicesEl.classList.add('decided', 'timeout');
+          Route.pick(id, ch.options.length);
+          setTimeout(() => { if (my === token) go(resolve(ch.timeoutNext)); }, 500);
+        } else pick(def);
       };
       update();
-      choiceTimer = setInterval(update, 100);
+      choiceTimer = setInterval(update, ch.timeoutNext ? 30 : 100);
     }
   }
   function closeChoice() {
@@ -993,6 +1002,7 @@
       if (text && typeof text === 'object' && text.video) {   // 영상 메시지 (누르면 재생)
         el.classList.add('pic', 'vid');
         el.dataset.video = text.video;
+        if (text.hold) el.dataset.hold = text.hold;
         el.innerHTML = `${showName ? `<small>${esc(who)}</small>` : ''}<span><img src="${text.thumb || ''}" alt=""><i class="vid-play"></i></span>`;
         return el;
       }
@@ -1023,10 +1033,10 @@
       const close = () => {
         if (closed) return; closed = true;
         v.pause(); ov.classList.add('out'); setTimeout(() => ov.remove(), 250);
-        b.classList.add('viewed'); checkVids();
+        b.classList.add('viewed'); b._viewed?.(); checkVids();
         if (leftVids().length) hintLater('영상을 눌러서 확인하세요', 900);
       };
-      v.addEventListener('ended', close);
+      v.addEventListener('ended', () => (b.dataset.hold ? setTimeout(close, +b.dataset.hold * 1000) : close()));   // hold: 마지막 장면 n초 유지
       ov.addEventListener('click', (e) => { e.stopPropagation(); close(); });
     };
     // 사진 메시지: 누르면 화면 가득 크게, 다시 누르면 닫힘
@@ -1153,6 +1163,12 @@
           body.append(bEl);
           Sound.pop();   // 대화방 안에서는 짧은 합성음 (receive 파일은 알림 때만)
           if (text && typeof text === 'object' && 'voice' in text) { await pause(400); if (!(await listenVoice(bEl, text))) return; }
+          if (text && typeof text === 'object' && text.video && text.wait) {   // 이 영상을 봐야 다음 문자
+            hintLater('영상을 눌러서 확인하세요', 600);
+            await new Promise((ok) => { bEl._viewed = ok; });
+            if (!alive) return;
+            await pause(500);
+          }
         }
         prev = who;
         await pause(380);
@@ -1870,7 +1886,7 @@
       seen.add(id);
       const sc = SC[id];
       // 루트에는 고를 게 2개 이상인 선택지만 (버튼 하나짜리는 건너뜀)
-      if ((sc.choice && sc.choice.options.length >= 2) || sc.mash || sc.urgent || sc.type === 'mission') return { kind: 'choice', id };
+      if ((sc.choice && sc.choice.options.length + (sc.choice.timeoutNext ? 1 : 0) >= 2) || sc.mash || sc.urgent || sc.type === 'mission') return { kind: 'choice', id };
       if (sc.type === 'ending') return { kind: 'ending', id };
       id = sc.choice ? sc.choice.options[0].next : sc.answer || sc.next;
     }
@@ -1878,7 +1894,7 @@
   }
 
   // 루트에서 갈라지는 길: 선택지, 또는 연타 이벤트(성공/실패)
-  const routeOptions = (sc) => sc.choice ? sc.choice.options
+  const routeOptions = (sc) => sc.choice ? [...sc.choice.options, ...(sc.choice.timeoutNext ? [{ text: '시간 초과', next: sc.choice.timeoutNext }] : [])]
     : sc.type === 'mission' ? [{ text: '미션 성공', next: sc.success }, { text: '미션 실패', next: sc.fail }]
     : sc.urgent ? [{ text: '답장 성공', next: sc.urgent.success }, { text: '답장 실패', next: sc.urgent.fail }]
     : [{ text: '연타 성공', next: sc.mash.success }, { text: '연타 실패', next: sc.mash.fail }];
@@ -2190,7 +2206,7 @@
     };
     const mediaOf = (sc) => [...[].concat(sc.src || []), sc.avatar, sc.voice?.src, sc.voice?.avatar, sc.route?.thumb, sc.polaroid,
       ...(sc.type === 'mission' ? MISSION_IMGS : [])];
-    const nextsOf = (sc) => [sc.next, sc.answer, sc.decline, sc.success, sc.fail, sc.mash?.success, sc.mash?.fail, sc.urgent?.success, sc.urgent?.fail, ...(sc.choice?.options || []).map((o) => o.next)]
+    const nextsOf = (sc) => [sc.next, sc.answer, sc.decline, sc.success, sc.fail, sc.mash?.success, sc.mash?.fail, sc.urgent?.success, sc.urgent?.fail, sc.choice?.timeoutNext, ...(sc.choice?.options || []).map((o) => o.next)]
       .filter((n) => typeof n === 'string' && SC[n]);
     return {
       add,

@@ -505,7 +505,147 @@ window.STORY = {
         [4, 99, '아무래도 너만한 사람이 없어.'],
         [6, 99, '아주 좋아하는 것 같다', 'think'],   // 아래 줄에 함께
       ],
-      next: 'n_tbd',
+      next: 'p_sc1',
+    },
+
+    /* ── 성찬 갈래 ── */
+    p_sc1: {
+      type: 'chat', thread: 'sungchan', title: '성찬', icon: '성',
+      route: { title: '광란? 감동?', thumb: 'media/images/thumbs/p_sc1.jpg' },
+      msgs: [['성찬', '어떤 생일파티 하고 싶은데?']],
+      choice: {
+        options: [
+          { text: '광란의 생일파티', reply: '제일 신나는 역대급 생일파티로 부탁해', next: 'p_sc_good1' },
+          { text: '감동의 생일파티', reply: '눈물의 생일파티로 부탁해', next: 'p_sc_bad1' },
+        ],
+      },
+    },
+    p_sc_good1: {
+      type: 'chat', thread: 'sungchan', title: '성찬', icon: '성',
+      msgs: [
+        ['성찬', '잘 골랐네ㅎㅎ'],
+        ['성찬', '그건 나지'],
+        ['성찬', { voice: 'media/voices/sc7.m4a', dur: 2, subs: [] }],   // sc7 소리만, 눌러서 듣기
+      ],
+      auto: 900,
+      next: 'n_sc1',
+    },
+    n_sc1: { type: 'narration', lines: ['음… 많이 시끄러워질 것 같다.', '그래도 재밌을 듯 하다.'], next: 'c_sc1' },
+    c_sc1: { type: 'clip', src: 'media/clips/sc1.mp4', next: 'p_sc2' },
+    p_sc2: {
+      type: 'chat', thread: 'sungchan', title: '성찬', icon: '성',
+      route: { title: '더 올려? ①', thumb: 'media/images/thumbs/p_sc2.jpg' },
+      msgs: [['성찬', '어때 더 올려?']],
+      choice: {
+        options: [
+          { text: '더 올려달라고 한다', reply: '더 올려야지', next: 'p_sc3' },
+          { text: '음.. 충분하다', reply: false, next: 'n_sc_good' },
+        ],
+      },
+    },
+    p_sc3: {
+      type: 'chat', thread: 'sungchan', title: '성찬', icon: '성',
+      route: { title: '더 올려? ②', thumb: 'media/images/thumbs/p_sc3.jpg' },
+      msgs: [
+        ['성찬', { video: 'media/clips/sc2.mp4', thumb: 'media/images/sc2.jpg' }],
+        ['성찬', '어때'],
+      ],
+      choice: {
+        options: [
+          { text: '더 올려달라고 한다', reply: false, next: 'p_sc4' },
+          { text: '음.. 충분하다', reply: false, next: 'n_sc_good' },
+        ],
+      },
+    },
+    p_sc4: {
+      type: 'chat', thread: 'sungchan', title: '성찬', icon: '성',
+      route: { title: '더 올려? ③', thumb: 'media/images/thumbs/p_sc4.jpg' },
+      msgs: [
+        ['성찬', { video: 'media/clips/sc3.mp4', thumb: 'media/images/sc3.jpg' }],
+        ['성찬', '이만큼?'],
+        ['성찬', '어때'],
+      ],
+      choice: {
+        options: [
+          { text: '더 올려달라고 한다', reply: false, next: 'p_sc5' },
+          { text: '음.. 충분하다', reply: false, next: 'n_sc_good' },
+        ],
+      },
+    },
+    p_sc5: {
+      type: 'chat', thread: 'sungchan', title: '성찬', icon: '성',
+      msgs: [
+        ['성찬', { video: 'media/clips/sc4.mp4', thumb: 'media/images/sc4.jpg', hold: 1, wait: true }],   // 다 보면(마지막 장면 1초 유지) 다음 문자
+        ['성찬', '오마이갓 비상사태'],
+      ],
+      auto: 1300,
+      next: 'n_sc4',
+    },
+    n_sc4: { type: 'narration', lines: ['쇼타로의 텐션보다 성찬의 의욕이 앞서버렸다', '쇼타로가 외면해버렸다..'], next: 'e_bad_sc4' },
+    e_bad_sc4: {
+      type: 'ending',
+      title: '오마이갓 비상사태',
+      route: { thumb: 'media/images/thumbs/e_bad_sc4.jpg' },
+      desc: '쇼타로도 기가 빨리나요?',
+      bg: ['#3a2a4a', '#08060c'],
+      voice: {
+        name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
+        src: null, duration: 3,   // ← 음성 받으면 연결
+        subs: [[0, 3, '(쇼타로의 한마디 — 추후 제공)']],
+      },
+    },
+    n_sc_good: { type: 'narration', lines: ['쇼타로의 텐션을 충분히 올렸다', '이제 파티를 진행해보자'], next: 'c_sc5' },
+    c_sc5: { type: 'clip', src: 'media/clips/sc5.mp4', next: 'e_good_sc' },
+    e_good_sc: {
+      type: 'ending',
+      title: '5!6!7!8!',
+      kind: 'good',
+      route: { thumb: 'media/images/thumbs/e_good_sc.jpg' },
+      desc: '타로생일 축하해야징 푸하',
+      bg: ['#4a3a1a', '#0c0a04'],
+      voice: {
+        name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
+        src: 'media/voices/good_sc.m4a',   // voice_good_sc 에서 소리만
+        subs: [[0, 99, '애정 이빠이네']],
+      },
+    },
+
+    // 감동의 생일파티 → 1초 안에 번복해야 함
+    p_sc_bad1: {
+      type: 'chat', thread: 'sungchan', title: '성찬', icon: '성',
+      route: { title: '1초 안에 번복!', thumb: 'media/images/thumbs/p_sc_bad1.jpg' },
+      msgs: [
+        ['성찬', '아'],
+        ['성찬', '그건 나 아닌데?'],
+      ],
+      choice: {
+        head: '1초만에 선택하세요!',
+        timeout: 1, timeoutNext: 'p_sc_bad2',   // 1초 지나면 선택 못 한 걸로
+        options: [{ text: '광란의 생일파티로 번복한다', reply: '제일 신나는 역대급 생일파티로 부탁해', next: 'p_sc_good1' }],
+      },
+    },
+    p_sc_bad2: {
+      type: 'chat', thread: 'sungchan', title: '성찬', icon: '성',
+      msgs: [
+        ['성찬', { voice: 'media/voices/sc6.m4a', dur: 2, subs: [] }],   // sc6 소리만
+        ['성찬', '그런 건 찬영이한테 가야지'],
+        ['성찬', '나는 신나는게 자신 있지'],
+      ],
+      auto: 1300,
+      next: 'n_sc_bad',
+    },
+    n_sc_bad: { type: 'narration', lines: ['이런.. 의뢰가 잘못됐다', '다시 해보자'], next: 'e_bad_sc' },
+    e_bad_sc: {
+      type: 'ending',
+      title: '전략 실패',
+      route: { thumb: 'media/images/thumbs/e_bad_sc.jpg' },
+      desc: '다른 요청을 해봐야 될 것 같다',
+      bg: ['#2a2a3a', '#06060c'],
+      voice: {
+        name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
+        src: null, duration: 3,   // ← 음성 받으면 연결
+        subs: [[0, 3, '(쇼타로의 한마디 — 추후 제공)']],
+      },
     },
 
     ...memberCall('원빈', '이', 'wonbin'),

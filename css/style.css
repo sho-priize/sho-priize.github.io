@@ -717,3 +717,7 @@ html:not(.dev) #ph .ph-label { display: none; }
 .ur-ghost .x { color: #ff4b3e; background: rgba(255,75,62,.18); border-radius: 3px; }
 .ur-input input { color: transparent; -webkit-text-fill-color: transparent; caret-color: #0a84ff; position: relative; }
 .ur-sheet.sent .ur-ghost { visibility: hidden; }
+.c-timer.quick { animation: none; font-size: 13px; color: #ff5d6c; margin-bottom: 4px; }
+.c-timer.quick i { height: 8px; border-radius: 8px; }
+.c-timer.quick i::after { background: #ff5d6c; }
+#choices.timeout .opt { opacity: .35; }
