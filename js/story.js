@@ -199,7 +199,7 @@ window.STORY = {
       msgs: [
         ['me', '잘 돼가고 있어?'],
         ['앤톤', { img: 'media/images/anton_photo.jpg' }],   // ← 셀카 받으면 교체
-        ['앤톤', '지금 준비 다했어요 ㅋㅋ'],
+        ['앤톤', '지금 준비 다했음 ㅋㅋ'],
         ['앤톤', '타로 형한테 전화해서 불러주면 안돼요 ?'],
       ],
       choice: {
@@ -273,8 +273,7 @@ window.STORY = {
     n_love2: {
       type: 'narration',
       lines: [
-        '당신의 선택 때문에 쇼타로의 등장 시점이 늦어져',
-        '깜짝파티는 처음부터 실패하고 말았다.',
+        '당신의 선택 때문에 쇼타로의 등장 시점이 늦어져 깜짝파티는 처음부터 실패하고 말았다.',
       ],
       next: 'e_love',
     },
@@ -628,7 +627,7 @@ window.STORY = {
     c_wonbin4: { type: 'clip', src: 'media/clips/wonbin4-2.mp4', next: 'n_wonbin_good' },
     n_wonbin_good: {
       type: 'narration',
-      lines: ['생일파티가 성공적이었다.', '쇼타로는 아주 신나 보인다!'],
+      lines: ['생일파티가 성공적이었다.', '둘 다 아주 신나 보인다!'],
       next: 'e_good_wonbin',
     },
     e_good_wonbin: {
@@ -636,7 +635,7 @@ window.STORY = {
       title: '댄스타임',
       kind: 'good',
       route: { thumb: 'media/images/thumbs/e_good_wonbin.jpg' },
-      desc: '원빈과 쇼타로 둘 다 많이 신나보인다.',
+      desc: '우리 아이가 많이 신이 났어요!',
       bg: ['#4a3a1a', '#0c0a04'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
@@ -801,8 +800,7 @@ window.STORY = {
     n_alone1: {
       type: 'narration',
       lines: [
-        '진심을 전하기 위해 쇼타로의 생일을 혼자 열심히 준비해보기로 했습니다.',
-        '미리 할 수 있는 모든 준비를 마쳤으니 쇼타로를 기다립니다..',
+        '진심을 전하기 위해 쇼타로의 생일을 혼자 열심히 준비해보기로 했다. 계획은 완벽하니까 쇼타로를 기다리자.',
       ],
       next: 'c_alone1',
     },
@@ -810,8 +808,8 @@ window.STORY = {
     n_alone2: {
       type: 'narration',
       lines: [
-        '앗! 쇼타로의 발걸음이 예상보다 빨랐습니다.',
-        '6초 안에 준비를 마쳐주세요!',
+        '앗! 쇼타로의 발걸음이 예상보다 빠르다.',
+        '시간에 맞춰 준비해줘!',
       ],
       next: 'm_alone',
     },
@@ -828,8 +826,8 @@ window.STORY = {
     n_alone_fail: {
       type: 'narration',
       lines: [
-        '쇼타로가 한 발 빨랐습니다..',
-        '준비가 되기 전에 쇼타로가 들어와 깜짝파티를 실패했습니다…',
+        '사스가 댄서 쇼타로는 민첩했다..',
+        '준비가 되기 전에 쇼타로가 들어와 깜짝파티를 실패했다…',
       ],
       next: 'e_bad_alone',
     },
