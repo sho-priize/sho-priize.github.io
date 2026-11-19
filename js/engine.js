@@ -2352,7 +2352,7 @@
   // 폰트가 준비된 뒤 첫 화면 표시 (기본 글꼴로 잠깐 보이는 것 방지)
   Preload.add(CFG.titleMedia); Preload.add(CFG.phone?.selfImage);
   ['media/images/end_good.png', 'media/images/end_bad.png', 'media/images/voicephoto.jpg'].forEach(Preload.add);
-  Object.values(SC).forEach((x) => x.polaroid && Preload.add(x.polaroid)); Preload.add('media/images/alone/pola_blur.jpg');   // 엔딩 그림은 처음에 받아둠
+  Object.values(SC).forEach((x) => x.polaroid && Preload.add(x.polaroid)); Preload.add('media/images/alone/pola_blur.jpg'); Preload.add('media/images/wallpaper.jpg');   // 엔딩 그림은 처음에 받아둠
   Promise.race([document.fonts?.ready, wait(2500)]).then(() => {
     fromHash(true);
     if (!gate) requestAnimationFrame(() => fade.classList.remove('on'));
