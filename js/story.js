@@ -308,7 +308,7 @@ window.STORY = {
       type: 'ending',
       title: '어떠까쥬?',
       route: { thumb: 'media/images/thumbs/e_love.jpg' },
-      desc: '당신의 욕심으로 깜짝파티가 실패했다.\n그래도 쇼타로는 기분이 좋았을지도...',
+      desc: '그래도 쇼타로는 기분이 좋았을지도…',
       bg: ['#4a2a3a', '#0c060a'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
@@ -319,9 +319,9 @@ window.STORY = {
 
     e_shotaro: {
       type: 'ending',
-      title: '힘을 숨긴 쇼타로에게 들킴',
+      title: '체포하겠어🚨🚓',
       route: { thumb: 'media/images/thumbs/e_shotaro.jpg' },
-      desc: '쇼타로에게 동생들의 이상 행동은 너무나도 쉬웠다\n깜짝파티는 살짝 아쉽게 되었다',
+      desc: '쇼타로에게 동생들의 이상 행동은 너무나도 쉬웠다',
       bg: ['#3a2a4a', '#08060c'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
