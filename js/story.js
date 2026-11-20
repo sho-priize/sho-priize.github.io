@@ -169,9 +169,8 @@ window.STORY = {
     n_trust: {
       type: 'narration',
       lines: [
-        '잘할 수 있을지 걱정되지만 맡겨보았다.',
-        '다같이 모인 저녁 시간에 두 사람의 연기가 시작된다.',
-        '일단 지켜보자.',
+        '잘할 수 있을지 걱정되지만 맡겨보았다',
+        '다 같이 모인 저녁시간... 일단 지켜보자',
       ],
       next: 'c_act',
     },
@@ -268,14 +267,7 @@ window.STORY = {
         '쇼타로가 장난전화인 줄 알고 그냥 끊었다.',
         '다시 전화해도 받지 않는다.',
       ],
-      next: 'n_love2',
-    },
-    n_love2: {
-      type: 'narration',
-      lines: [
-        '당신의 선택 때문에 쇼타로의 등장 시점이 늦어져 깜짝파티는 처음부터 실패하고 말았다.',
-      ],
-      next: 'e_love',
+      next: 'e_love',   // (두 번째 내러티브 n_love2 삭제)
     },
 
     c_act: {
@@ -888,7 +880,7 @@ window.STORY = {
       },
     },
 
-    // 감동받게 하기 → 응급상황 연타
+    // 감동받게 하기 → 긴급상황 연타
     n_sohee3: {
       type: 'narration',
       lines: [
@@ -899,16 +891,16 @@ window.STORY = {
     },
     c_sohee3: {
       type: 'clip', src: 'media/clips/sohee3.mp4',
-      route: { title: '응급상황!', thumb: 'media/images/thumbs/c_sohee3.jpg' },
+      route: { title: '긴급상황!', thumb: 'media/images/thumbs/c_sohee3.jpg' },
       // 영상 끝 장면에서 버튼 → 1.7초 안에 10번
-      mash: { text: '응급상황! 빠르게 연타하세요!', taps: 10, window: 1.7, success: 'c_sohee4', fail: 'n_sohee4' },
+      mash: { text: '긴급상황! 빠르게 연타하세요!', taps: 10, window: 1.7, success: 'c_sohee4', fail: 'n_sohee4' },
     },
     c_sohee4: { type: 'clip', src: 'media/clips/sohee4.mp4', next: 'e_good_sohee1' },
     n_sohee4: {
       type: 'narration',
       lines: [
-        '이런.. 예상치 못한 상황에서 민첩하게 대처하지 못했습니다',
-        '깜짝파티의 흥이 다 깨져버렸습니다.....',
+        '이런.. 예상치 못한 상황에서 민첩하게 대처하지 못했다',
+        '깜짝파티의 흥이 다 깨져버렸다..',
       ],
       next: 'e_bad_sohee1',
     },

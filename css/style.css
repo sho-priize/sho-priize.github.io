@@ -727,3 +727,12 @@ html:not(.dev) #ph .ph-label { display: none; }
 /* 엔딩에서 '다시 하기'로 온 경우 그 엔딩 위치 강조 */
 .r-node.card.focus { outline: 3px solid var(--accent); outline-offset: 4px; animation: rFocus 1.2s ease-in-out 3; }
 @keyframes rFocus { 50% { outline-offset: 9px; outline-color: rgba(var(--accent-rgb), .4); } }
+.r-node.card.ending { cursor: default; }
+/* 루트 글씨·칸: 화면 폭에 비례 (좁은 폰에서도 390px 기준 배치 그대로 → 겹침 없음). 넓은 화면에선 기존 크기 유지 */
+.r-chip { font-size: min(11px, 2.82cqw); padding: min(5px, 1.28cqw) min(9px, 2.3cqw); }
+.r-label { font-size: min(11px, 2.82cqw); padding: min(5px, 1.28cqw) min(10px, 2.56cqw); }
+.r-node.card { gap: min(6px, 1.54cqw); }
+.r-node.small { gap: min(5px, 1.28cqw); }
+.r-node.small i { width: min(40px, 10.25cqw); height: min(40px, 10.25cqw); font-size: min(13px, 3.33cqw); }
+.r-node.small span { font-size: min(10px, 2.56cqw); }
+.r-play { width: min(30px, 7.7cqw); height: min(30px, 7.7cqw); font-size: min(30px, 7.7cqw); }

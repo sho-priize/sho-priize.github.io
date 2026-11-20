@@ -1166,7 +1166,11 @@
           if (sc.group && who !== prev) typing.classList.add('named');
           typing.innerHTML = `${sc.group && who !== prev ? `<small>${esc(who)}</small>` : ''}<span><i></i><i></i><i></i></span>`;
           body.append(typing);
+          // 사진·영상 문자는 그림을 다 받아 둔 뒤 한 번에 표시 (빈 줄 먼저 생겼다가 늘어나지 않게)
+          const pic = text && typeof text === 'object' ? text.thumb || text.img : null;
+          const picReady = pic ? Promise.race([new Promise((ok) => { const im = new Image(); im.onload = im.onerror = () => (im.decode ? im.decode().catch(() => {}) : Promise.resolve()).then(ok); im.src = pic; }), pause(4000)]) : null;
           await pause(typeof text === 'string' ? Math.min(1700, 500 + text.length * 45) : 1500);
+          if (picReady) await picReady;
           if (!alive) return;
           typing.remove();
           const bEl = bubble(who, text, prev, true);
@@ -2029,7 +2033,7 @@
       const title = n.kind === 'ending' ? sc.title : info.title || n.id;
       const thumb = info.thumb ? `style="background-image:url('${info.thumb}')"` : '';
       return `<button class="r-node card ${n.kind} ${ok ? 'reached' : 'locked'}" data-key="${n.key}" style="${style}" ${ok ? '' : 'disabled'}>
-          <span class="r-thumb" ${thumb}>${ok ? '<i class="r-play"></i>' : '<i class="r-lock">?</i>'}</span>
+          <span class="r-thumb" ${thumb}>${ok ? (n.kind === 'ending' ? '' : '<i class="r-play"></i>') : '<i class="r-lock">?</i>'}</span>
           <span class="r-label">${n.kind === 'ending' ? '<em>END</em>' : ''}${ok ? esc(title) : '???'}</span>
         </button>`;
     }).join('');
@@ -2118,9 +2122,9 @@
       const key = e.target.closest('.r-node.reached')?.dataset.key;
       if (!key) return;
       const n = nodes.find((x) => x.key === key);
+      if (n.kind === 'ending') return;   // 엔딩은 표시만 (눌러서 들어가지 않음)
       primeVideo(n.kind === 'start' ? CFG.start : n.id, n.kind === 'choice');
       if (n.kind === 'start') { state = freshState(); go(CFG.start); }
-      else if (n.kind === 'ending') go(n.id);
       else if (n.kind === 'choice') jumpTo(n.id);
     };
     // 다시 들어갈 수 있는 지점의 영상을 미리 받아 둠 (누르면 바로 시작되게)
