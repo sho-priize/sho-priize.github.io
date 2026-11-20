@@ -434,7 +434,104 @@ window.STORY = {
         ['은석', '아 부정적인 생각'],
         ['은석', '내쫓애'],
       ],
-      choice: { options: [{ text: '알겠어', reply: '알겠어...', next: 'p_eunseok4' }] },
+      route: { title: '알겠어? 신나는 파티?', thumb: 'media/images/thumbs/p_eunseok3.jpg' },
+      choice: {
+        options: [
+          { text: '알겠어...', reply: '알겠어...', next: 'p_eunseok4' },
+          { text: '생각해봤는데 그냥 신나는 파티가 좋겠어', next: 'p_es_party1' },   // 전송
+        ],
+      },
+    },
+
+    /* ── 은석: 신나는 파티 ── */
+    p_es_party1: {
+      type: 'chat', thread: 'eunseok', title: '은석', icon: '은',
+      msgs: [
+        ['은석', '그럴 수도 있겠네'],
+        ['은석', '뭐 필요한데?'],
+      ],
+      choice: { options: [{ text: '쇼타로를 맡아줘', reply: false, next: 'p_es_party1b' }] },
+    },
+    p_es_party1b: {
+      type: 'chat', thread: 'eunseok', title: '은석', icon: '은',
+      msgs: [
+        ['me', '들키면 안되니까'],
+        ['me', '쇼타로를 맡아줘'],
+        ['은석', '쉽지ㅋㅋ'],
+      ],
+      auto: 1200,
+      next: 'n_es_party1',
+    },
+    n_es_party1: {
+      type: 'narration',
+      lines: ['자신감을 보니 딱 맞는 사람에게 부탁한 것 같다. 파티 준비만 신경쓰자.'],
+      next: 'p_es_party2',
+    },
+    p_es_party2: {
+      type: 'chat', thread: 'eunseok', title: '은석', icon: '은',
+      route: { title: '계속 잡고 있어? 교대?', thumb: 'media/images/thumbs/p_es_party2.jpg' },
+      msgs: [
+        ['은석', { video: 'media/clips/daldol1.mp4', thumb: 'media/images/daldol1.jpg' }],
+        ['은석', { video: 'media/clips/daldol2.mp4', thumb: 'media/images/daldol2.jpg' }],
+        ['은석', '의심 1도 못하는중ㅋㅋㅋ'],
+      ],
+      choice: {
+        options: [
+          { text: '굿 계속 잡고 있어', next: 'p_es_party_bad' },              // 전송
+          { text: '이제 교대하고 파티 준비 도와줘', next: 'p_es_party_good' },   // 전송
+        ],
+      },
+    },
+    // 계속 잡고 있어 → 케이크 들킴
+    p_es_party_bad: {
+      type: 'chat', thread: 'eunseok', title: '은석', icon: '은',
+      msgs: [
+        ['은석', { video: 'media/clips/daldol3.mp4', thumb: 'media/images/daldol3.jpg' }],
+        ['은석', { video: 'media/clips/daldol4.mp4', thumb: 'media/images/daldol4.jpg' }],
+        ['은석', '아... 근데 문제가 있어'],
+        ['은석', '이거 찍다가 케이크 들켰는데?'],
+      ],
+      choice: { options: [{ text: '뭐라고?', reply: false, next: 'n_es_party_bad' }] },
+    },
+    n_es_party_bad: {
+      type: 'narration',
+      lines: ['은석과 쇼타로가 온갖 곳을 돌아다니며 놀다가 케이크를 발견해버렸다..'],
+      next: 'e_es_party_bad',
+    },
+    e_es_party_bad: {
+      type: 'ending',
+      title: '꼭꼭 숨어라',
+      route: { thumb: 'media/images/thumbs/e_es_party_bad.jpg' },
+      desc: '',
+      bg: ['#2a2a3a', '#06060c'],
+      voice: {
+        name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
+        src: null, duration: 3,   // ← voice_dongsaeng 받으면 연결
+        subs: [[0, 99, '우리 팀 동생들은 진짜 왜 이럴까']],
+      },
+    },
+    // 교대하고 파티 준비 → 굿
+    p_es_party_good: {
+      type: 'chat', thread: 'eunseok', title: '은석', icon: '은',
+      msgs: [['은석', '어디로 가?']],
+      auto: 1300,
+      next: 'c_es_party1',
+    },
+    c_es_party1: { type: 'clip', src: 'media/clips/es6-7.mp4', next: 'n_es_party_good' },   // es6(0.5초부터) + es7 이어 붙인 파일
+    n_es_party_good: { type: 'narration', lines: ['손발이 딱딱 맞아 깜짝파티 준비가 순조로웠다'], next: 'c_es_party2' },
+    c_es_party2: { type: 'clip', src: 'media/clips/esp.mp4', next: 'e_es_party_good' },   // esp1 + esp2 + esp3
+    e_es_party_good: {
+      type: 'ending',
+      title: '아이고 사랑해~♡',
+      kind: 'good',
+      route: { thumb: 'media/images/thumbs/e_es_party_good.jpg' },
+      desc: '',
+      bg: ['#4a3a1a', '#0c0a04'],
+      voice: {
+        name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
+        src: null, duration: 3,   // ← voice_kiki 받으면 연결
+        subs: [[0, 99, '쁘! 으응~? 키키키킥']],
+      },
     },
     p_eunseok4: {
       type: 'chat', thread: 'eunseok',
