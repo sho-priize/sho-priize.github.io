@@ -686,7 +686,7 @@ window.STORY = {
       },
     },
     n_sc_good: { type: 'narration', lines: ['쇼타로의 텐션을 충분히 올렸다', '이제 파티를 진행해보자'], next: 'c_sc5' },
-    c_sc5: { type: 'clip', src: 'media/clips/sc5.mp4', next: 'e_good_sc' },
+    c_sc5: { type: 'clip', src: 'media/clips/sc8-9-5.mp4', next: 'e_good_sc' },   // sc8 → sc9 → sc5 이어 붙인 파일
     e_good_sc: {
       type: 'ending',
       title: '5!6!7!8!',
@@ -1086,8 +1086,8 @@ window.STORY = {
       bg: ['#4a3a1a', '#0c0a04'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
-        src: null, duration: 3,   // ← 음성 받으면 연결
-        subs: [[0, 3, '(쇼타로의 한마디 — 추후 제공)']],
+        src: 'media/voices/alone_good.m4a',   // voice_alone_good 에서 소리만
+        subs: [[0, 99, '감사드리고 사랑해~♡']],
       },
     },
 
@@ -1157,7 +1157,7 @@ window.STORY = {
     c_anton_good: { type: 'clip', src: 'media/clips/anton2-3.mp4', next: 'e_good_anton' },   // anton2(8초부터) + anton3 이어 붙인 파일
     e_good_anton: {
       type: 'ending',
-      title: '아이고 사랑해~♡',
+      title: '애정 이빠이네',
       kind: 'good',
       route: { thumb: 'media/images/thumbs/e_good_anton.jpg' },
       desc: '',
