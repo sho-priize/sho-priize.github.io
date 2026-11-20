@@ -1983,9 +1983,9 @@
     const unlocked = new Set(store.get(ENDINGS_KEY, []));
     const snaps = Route.data.snaps;
     const DY = 46, PAD_X = 6, PAD_Y = 6;   // cqw (화면 너비 기준)
-    // 가로형(왼쪽→오른쪽으로 뻗는) 루트 미리보기: 주소에 ?route=h
-    const HOR = /[?&]route=h\b/.test(location.search) || CFG.routeDir === 'h';
-    const DX = 74, BR = .74;   // 가로형: 단계 사이 간격, 갈래 간격 비율
+    // 기본: 가로형(왼쪽 → 오른쪽으로 뻗음). 예전 세로형은 주소에 ?route=v
+    const HOR = !/[?&]route=v\b/.test(location.search) && CFG.routeDir !== 'v';
+    const DX = 66, BR = .76;   // 가로형: 단계 사이 간격(카드 36 + 이름표 자리 30), 갈래 간격 비율
     let W, H;
     if (HOR) {
       W = PAD_X * 2 + depth * DX + 40; H = Math.max(60, width * BR + PAD_Y * 2);
@@ -2030,10 +2030,12 @@
         const twins = edges.filter((o) => o.label && o.from === e.from && o.to === e.to);
         const ti = twins.indexOf(e), tn = twins.length;
         const tree = e.to.parentKey === e.from.key;
-        const x = tree ? e.to.x - halfW(e.to) - 2 : (e.from.x + halfW(e.from) + e.to.x - halfW(e.to)) / 2;
-        const y = e.to.cy + (tn > 1 ? (ti - (tn - 1) / 2) * 9 : 0) + (tree ? 0 : 0);
+        // 나무 가지: 자식 칸 바로 왼쪽 / 멀리 합류하는 길: 부모 칸 바로 오른쪽(가는 방향으로 살짝 비켜서)
+        const gap = DX - 36;
+        const x = tree ? e.to.x - halfW(e.to) - 1.5 : e.from.x + halfW(e.from) + 1.5;
+        const y = tree ? e.to.cy + (tn > 1 ? (ti - (tn - 1) / 2) * 11 : 0) : e.from.cy + (e.to.cy >= e.from.cy ? 10 : -10);
         const open = reached(e.from);
-        return `<span class="r-chip h ${taken(e) ? 'on' : ''}${tree ? ' tree' : ' mid'}" style="left:${x.toFixed(2)}cqw;top:${y.toFixed(2)}cqw;--mw:${(DX - 40).toFixed(1)}cqw">${open ? esc(e.label) : '?'}</span>`;
+        return `<span class="r-chip h ${taken(e) ? 'on' : ''}${tree ? ' tree' : ' mid'}" style="left:${x.toFixed(2)}cqw;top:${y.toFixed(2)}cqw;--mw:${(gap - 3).toFixed(1)}cqw">${open ? esc(e.label) : '?'}</span>`;
       }
       const tree = e.to.parentKey === e.from.key;
       const twins = edges.filter((o) => o.label && o.from === e.from && o.to === e.to);
@@ -2134,8 +2136,9 @@
       routeFocus = null;
       const last = focus || nodes.filter(reached).sort((a, b) => (HOR ? b.x - a.x : b.cy - a.cy))[0];
       const unit = stage.offsetWidth / 100;
-      ox = map.offsetWidth / 2 - (last ? last.x * unit : 0);
-      oy = map.offsetHeight * (focus ? .5 : .4) - (last ? last.cy * unit : 0);
+      // 가로형: 그 지점을 화면 오른쪽 2/3쯤에 둬서 앞에 지나온 길도 같이 보이게
+      ox = map.offsetWidth * (HOR && !focus ? .64 : .5) - (last ? last.x * unit : 0);
+      oy = map.offsetHeight * (HOR || focus ? .5 : .4) - (last ? last.cy * unit : 0);
       clamp();
     });
 

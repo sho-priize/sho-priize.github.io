@@ -743,3 +743,4 @@ html:not(.dev) #ph .ph-label { display: none; }
 /* 가로형 루트 미리보기 (?route=h) */
 .r-chip.h.tree { transform: translate(-100%, -50%); }
 .r-chip.h.mid { transform: translate(-50%, -50%); z-index: 1; }
+.r-chip.h.mid { transform: translate(0, -50%); }
