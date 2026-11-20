@@ -312,8 +312,8 @@ window.STORY = {
       bg: ['#4a2a3a', '#0c060a'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
-        src: null, duration: 3,                        // ← 음성 받으면 src 에 경로
-        subs: [[0, 3, '(쇼타로의 한마디 — 추후 제공)']],
+        src: 'media/voices/start.m4a',   // voice_start 에서 소리만
+        subs: [[0, 99, '시작 안했어yo 지금부터 시작이yo']],
       },
     },
 
@@ -506,7 +506,7 @@ window.STORY = {
       bg: ['#2a2a3a', '#06060c'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
-        src: null, duration: 3,   // ← voice_dongsaeng 받으면 연결
+        src: 'media/voices/dongsaeng.m4a',   // voice_dongsaeng 에서 소리만
         subs: [[0, 99, '우리 팀 동생들은 진짜 왜 이럴까']],
       },
     },
@@ -529,8 +529,8 @@ window.STORY = {
       bg: ['#4a3a1a', '#0c0a04'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
-        src: null, duration: 3,   // ← voice_kiki 받으면 연결
-        subs: [[0, 99, '쁘! 으응~? 키키키킥']],
+        src: 'media/voices/zuto.m4a',   // voice_zuto 에서 소리만
+        subs: [[0, 99, '즛~또 잇쇼다요~ (계속 함께야~)']],
       },
     },
     p_eunseok4: {
@@ -681,8 +681,8 @@ window.STORY = {
       bg: ['#3a2a4a', '#08060c'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
-        src: null, duration: 3,   // ← 음성 받으면 연결
-        subs: [[0, 3, '(쇼타로의 한마디 — 추후 제공)']],
+        src: 'media/voices/here.m4a',   // voice_here 에서 소리만
+        subs: [[0, 99, '와하..! 뭐야! 여기, 어떻게 된거야?']],
       },
     },
     n_sc_good: { type: 'narration', lines: ['쇼타로의 텐션을 충분히 올렸다', '이제 파티를 진행해보자'], next: 'c_sc5' },
@@ -696,8 +696,8 @@ window.STORY = {
       bg: ['#4a3a1a', '#0c0a04'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
-        src: 'media/voices/good_anton.m4a',   // voice_good_anton 에서 소리만 (앤톤 엔딩과 서로 바꿈)
-        subs: [[0, 99, '진짜 예상을 못했는데.. 제가 이렇게 받을 줄 몰랐어요.. 아이고 사랑 해~♡']],
+        src: 'media/voices/muyaho.m4a',   // voice_muyaho 에서 소리만
+        subs: [[0, 99, '무~ 야~ 호~']],
       },
     },
 
@@ -734,8 +734,8 @@ window.STORY = {
       bg: ['#2a2a3a', '#06060c'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
-        src: null, duration: 3,   // ← 음성 받으면 연결
-        subs: [[0, 3, '(쇼타로의 한마디 — 추후 제공)']],
+        src: 'media/voices/fighting.m4a',   // voice_fighting 에서 소리만
+        subs: [[0, 99, '아자아자 화이팅']],
       },
     },
 
@@ -870,8 +870,8 @@ window.STORY = {
       bg: ['#4a3a1a', '#0c0a04'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
-        src: null, duration: 3,   // ← 음성 받으면 연결
-        subs: [[0, 3, '(쇼타로의 한마디 — 추후 제공)']],
+        src: 'media/voices/pretty.m4a',   // voice_pretty 에서 소리만
+        subs: [[0, 99, '어~! 따~ 예쁘네~']],
       },
     },
 
@@ -972,8 +972,8 @@ window.STORY = {
       bg: ['#3a2a4a', '#08060c'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
-        src: null, duration: 3,   // ← 음성 받으면 연결
-        subs: [[0, 3, '(쇼타로의 한마디 — 추후 제공)']],
+        src: 'media/voices/dongsaeng.m4a',   // voice_dongsaeng 에서 소리만
+        subs: [[0, 99, '우리 팀 동생들은 진짜 왜 이럴까']],
       },
     },
 
@@ -1009,8 +1009,8 @@ window.STORY = {
       bg: ['#2a3a4a', '#06080c'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
-        src: null, duration: 3,   // ← 음성 받으면 연결
-        subs: [[0, 3, '(쇼타로의 한마디 — 추후 제공)']],
+        src: 'media/voices/what.m4a',   // voice_what 에서 소리만
+        subs: [[0, 99, '이고 모야']],
       },
     },
     e_good_sohee1: {
@@ -1064,14 +1064,14 @@ window.STORY = {
     },
     e_bad_alone: {
       type: 'ending',
-      title: '느려서 실패',
+      title: '🐌',
       route: { thumb: 'media/images/thumbs/e_bad_alone.jpg' },
       desc: '팔척수달의 발걸음은 보기보다 빠르답니다',
       bg: ['#3a2418', '#0c0604'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
-        src: null, duration: 3,   // ← 음성 받으면 연결
-        subs: [[0, 3, '(쇼타로의 한마디 — 추후 제공)']],
+        src: 'media/voices/mada.m4a',   // voice_mada 에서 소리만
+        subs: [[0, 99, 'まだまだ']],
       },
     },
     c_alone_good: { type: 'clip', src: 'media/clips/shotaro_alone.mp4', next: 'e_good_alone' },   // 원본을 0.8배 속도로 늘린 파일
@@ -1157,15 +1157,15 @@ window.STORY = {
     c_anton_good: { type: 'clip', src: 'media/clips/anton2-3.mp4', next: 'e_good_anton' },   // anton2(8초부터) + anton3 이어 붙인 파일
     e_good_anton: {
       type: 'ending',
-      title: '애정 이빠이네',
+      title: '고기~!',
       kind: 'good',
       route: { thumb: 'media/images/thumbs/e_good_anton.jpg' },
-      desc: '',
+      desc: '고만해라! 기분이 더 좋아지면 어떡하냐!',
       bg: ['#4a3a1a', '#0c0a04'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
-        src: 'media/voices/good_sc.m4a',   // voice_good_sc 에서 소리만 (성찬 엔딩과 서로 바꿈)
-        subs: [[0, 99, '애정 이빠이네']],
+        src: 'media/voices/gogi.m4a',   // voice_gogi 에서 소리만
+        subs: [[0, 99, '고만해라! 기분이 더 좋아지면 어떡하냐! 고기~!']],
       },
     },
 
