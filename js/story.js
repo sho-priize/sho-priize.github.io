@@ -1018,7 +1018,7 @@ window.STORY = {
       title: '나의 사랑을 받아줘!',
       kind: 'good',   // 굿 엔딩 (나머지는 배드 엔딩)
       route: { thumb: 'media/images/thumbs/e_good_sohee1.jpg' },
-      desc: '민첩한 임기응변으로 깜짝파티를 성공했습니다!',
+      desc: '민첩한 임기응변으로 깜짝파티를 성공했다!',
       bg: ['#4a3a1a', '#0c0a04'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
