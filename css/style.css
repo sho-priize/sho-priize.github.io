@@ -19,6 +19,8 @@
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; height: 100%; background: #000; overflow: hidden; overscroll-behavior: none; }
+/* 문서 자체는 절대 스크롤되지 않게 고정 (인앱 브라우저 하단 바가 스크롤 변화로 다시 올라오는 것 줄이기) */
+html, body { position: fixed; inset: 0; width: 100%; }
 body {
   display: grid; place-items: center;
   height: 100dvh;
@@ -37,7 +39,7 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   overflow: hidden;
   background: #070608;
   /* 클립 영상 위치: 위쪽에서 16% 지점, 가로 꽉 차게 16:9 */
-  --vt: max(calc(64px + var(--safe-t)), 15cqh);
+  --vt: max(calc(56px + var(--safe-t)), 9cqh);   /* 영상 위쪽 여백 (인앱 브라우저에서 위가 비어 보이지 않게 줄임) */
   --vh: calc(100cqw * 9 / 16);
   --vb: calc(var(--vt) + var(--vh));
 }
@@ -261,7 +263,7 @@ html:not(.dev) #ph .ph-label { display: none; }
 #title {
   position: absolute; inset: 0; z-index: 9;
   display: flex; flex-direction: column; justify-content: flex-start;
-  padding: calc(16cqh + var(--safe-t)) 24px calc(30px + var(--safe-b));
+  padding: calc(9cqh + var(--safe-t)) 24px calc(30px + var(--safe-b));
   background:
     radial-gradient(circle, rgba(255,255,255,.05) 1px, transparent 1.2px) 0 0 / 22px 22px,
     radial-gradient(ellipse 90% 40% at 50% 22%, rgba(var(--accent-rgb), .24), transparent 70%),
@@ -736,3 +738,8 @@ html:not(.dev) #ph .ph-label { display: none; }
 .r-node.small i { width: min(40px, 10.25cqw); height: min(40px, 10.25cqw); font-size: min(13px, 3.33cqw); }
 .r-node.small span { font-size: min(10px, 2.56cqw); }
 .r-play { width: min(30px, 7.7cqw); height: min(30px, 7.7cqw); font-size: min(30px, 7.7cqw); }
+/* 초에 불 붙이기: 진행 원(채워지는 링)은 빼고 점선 원만 */
+.ms-target circle.p { display: none; }
+/* 가로형 루트 미리보기 (?route=h) */
+.r-chip.h.tree { transform: translate(-100%, -50%); }
+.r-chip.h.mid { transform: translate(-50%, -50%); z-index: 1; }

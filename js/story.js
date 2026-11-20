@@ -504,7 +504,7 @@ window.STORY = {
     p_sc1: {
       type: 'chat', thread: 'sungchan', title: '성찬', icon: '성',
       route: { title: '광란? 감동?', thumb: 'media/images/thumbs/p_sc1.jpg' },
-      msgs: [['성찬', '어떤 생일파티 하고 싶은데?']],
+      msgs: [['성찬', '어떤 생일파티 해주고 싶은데?']],
       choice: {
         options: [
           { text: '광란의 생일파티', reply: '제일 신나는 역대급 생일파티로 부탁해', next: 'p_sc_good1' },
@@ -1079,6 +1079,15 @@ window.STORY = {
         ['앤톤', { img: 'media/images/malgang3.jpg' }],
         ['앤톤', { img: 'media/images/malgang4.jpg' }],
         ['앤톤', 'kawaiii'],
+      ],
+      choice: { options: [{ text: '귀엽네', next: 'p_anton_bad1b' }] },   // 전송
+    },
+    p_anton_bad1b: {
+      type: 'chat', thread: 'anton', title: '앤톤', icon: '앤',
+      msgs: [
+        ['앤톤', '그쵸'],
+        ['앤톤', { img: 'media/images/malgang5.jpg' }],
+        ['앤톤', { img: 'media/images/malgang6.jpg' }],
       ],
       choice: { options: [{ text: '그러다 들킨다', next: 'p_anton_bad2' }] },   // 전송
     },

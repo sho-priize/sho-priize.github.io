@@ -1075,18 +1075,28 @@
       btn.addEventListener('click', (ev) => {
         ev.stopPropagation();
         el.classList.remove('wait'); el.classList.add('playing'); clearCtas();
-        const dur = m.dur || 4, bars = [...el.querySelectorAll('.vm-wave i')];
-        let audio = null, t0 = performance.now(), r;
-        if (m.voice) { audio = new Audio(m.voice); audio.muted = muted; audio.play().catch(() => {}); }
+        const dur = m.dur || 4, bars = [...el.querySelectorAll('.vm-wave i')], durEl = $('.vm-dur', el);
+        let audio = null, r, start = null, lastOn = -1;
+        // 재생 위치: 실제로 소리가 나기 시작한 순간부터 매 프레임 부드럽게 계산
+        // (아이폰은 currentTime 이 띄엄띄엄 바뀌어서 그걸 그대로 쓰면 재생바가 뚝뚝 끊김)
+        const begin = () => { if (start === null) start = performance.now() - (audio?.currentTime || 0) * 1000; };
+        if (m.voice) {
+          audio = new Audio(m.voice); audio.muted = muted;
+          audio.addEventListener('playing', begin, { once: true });
+          audio.play().catch(() => begin());
+          setTimeout(begin, 800);   // 소리가 막혀도 진행은 되게
+        } else begin();
         const tick = () => {
           if (!alive) { audio?.pause(); return done(false); }
-          const t = audio && audio.currentTime > 0 ? audio.currentTime : (performance.now() - t0) / 1000;
+          const t = start === null ? 0 : (performance.now() - start) / 1000;
           const end = audio && isFinite(audio.duration) ? audio.duration : dur;
           const on = Math.floor(Math.min(1, t / end) * bars.length);
-          bars.forEach((b, k) => b.classList.toggle('on', k < on));
+          if (on !== lastOn) { lastOn = on; bars.forEach((b, k) => b.classList.toggle('on', k < on)); }
+          const dTxt = `0:${pad2(Math.max(0, Math.ceil(end - t)))}`;
+          if (durEl && durEl.textContent !== dTxt) durEl.textContent = dTxt;
           const e = currentSub(m.subs, t);
           defaultSub(e ? e[2] : '', e ? e[3] : '');
-          if (t >= end || audio?.ended) { el.classList.remove('playing'); setTimeout(() => { defaultSub(''); done(true); }, 700); return; }
+          if (t >= end || audio?.ended) { el.classList.remove('playing'); bars.forEach((b) => b.classList.add('on')); if (durEl) durEl.textContent = `0:${pad2(Math.round(end))}`; setTimeout(() => { defaultSub(''); done(true); }, 700); return; }
           r = requestAnimationFrame(tick);
         };
         tick();
@@ -1973,9 +1983,19 @@
     const unlocked = new Set(store.get(ENDINGS_KEY, []));
     const snaps = Route.data.snaps;
     const DY = 46, PAD_X = 6, PAD_Y = 6;   // cqw (화면 너비 기준)
-    const W = Math.max(100, width + PAD_X * 2), H = PAD_Y * 2 + depth * DY + 32;
-    const shift = (W - width) / 2;   // 좁으면 가운데 정렬
-    nodes.forEach((n) => { n.x += shift; n.cy = PAD_Y + n.depth * DY + 15; });
+    // 가로형(왼쪽→오른쪽으로 뻗는) 루트 미리보기: 주소에 ?route=h
+    const HOR = /[?&]route=h\b/.test(location.search) || CFG.routeDir === 'h';
+    const DX = 74, BR = .74;   // 가로형: 단계 사이 간격, 갈래 간격 비율
+    let W, H;
+    if (HOR) {
+      W = PAD_X * 2 + depth * DX + 40; H = Math.max(60, width * BR + PAD_Y * 2);
+      nodes.forEach((n) => { const b = n.x; n.x = PAD_X + 20 + n.depth * DX; n.cy = PAD_Y + b * BR; });
+    } else {
+      W = Math.max(100, width + PAD_X * 2); H = PAD_Y * 2 + depth * DY + 32;
+      const shift = (W - width) / 2;   // 좁으면 가운데 정렬
+      nodes.forEach((n) => { n.x += shift; n.cy = PAD_Y + n.depth * DY + 15; });
+    }
+    const halfW = (n) => (n.size === 'small' ? 6 : 18);
 
     const reached = (n) => n.kind === 'start' || (n.kind === 'choice' && !!snaps[n.id]) || (n.kind === 'ending' && unlocked.has(n.id));
     const taken = (e) => (e.scene ? Route.picked(e.scene).includes(e.opt) : reached(e.to));
@@ -1987,6 +2007,10 @@
     const LANE = 25;
     const laneX = (e) => e.from.x + (Math.sign(e.to.x - e.from.x) || -1) * LANE;
     const paths = edges.map((e) => {
+      if (HOR) {   // 부모 오른쪽 → 자식 왼쪽
+        const x1 = e.from.x + halfW(e.from), y1 = e.from.cy, x2 = e.to.x - halfW(e.to), y2 = e.to.cy, xm = (x1 + x2) / 2;
+        return `<path class="${taken(e) ? 'on' : ''}" d="M${x1},${y1} C${xm},${y1} ${xm},${y2} ${x2},${y2}"/>`;
+      }
       const x1 = e.from.x, y1 = e.from.cy + halfH(e.from);
       const x2 = e.to.x, y2 = e.to.cy - halfH(e.to);
       const tree = e.to.parentKey === e.from.key;
@@ -2002,6 +2026,15 @@
     // - 나무 가지(자식이 처음 생긴 길): 자식 바로 위
     // - 다른 길이 합류하는 선: 선의 가운데 (같은 자리에 겹치지 않게)
     const chips = edges.filter((e) => e.label).map((e) => {
+      if (HOR) {   // 이름표는 자식 칸 바로 왼쪽(선 끝)에, 같은 곳으로 가는 게 여럿이면 위아래로
+        const twins = edges.filter((o) => o.label && o.from === e.from && o.to === e.to);
+        const ti = twins.indexOf(e), tn = twins.length;
+        const tree = e.to.parentKey === e.from.key;
+        const x = tree ? e.to.x - halfW(e.to) - 2 : (e.from.x + halfW(e.from) + e.to.x - halfW(e.to)) / 2;
+        const y = e.to.cy + (tn > 1 ? (ti - (tn - 1) / 2) * 9 : 0) + (tree ? 0 : 0);
+        const open = reached(e.from);
+        return `<span class="r-chip h ${taken(e) ? 'on' : ''}${tree ? ' tree' : ' mid'}" style="left:${x.toFixed(2)}cqw;top:${y.toFixed(2)}cqw;--mw:${(DX - 40).toFixed(1)}cqw">${open ? esc(e.label) : '?'}</span>`;
+      }
       const tree = e.to.parentKey === e.from.key;
       const twins = edges.filter((o) => o.label && o.from === e.from && o.to === e.to);
       const ti = twins.indexOf(e), tn = twins.length;
@@ -2099,12 +2132,11 @@
       // 가장 깊이 도달한 지점이 화면 가운데쯤 오게
       const focus = routeFocus && nodes.find((n) => n.id === routeFocus && n.kind === 'ending');
       routeFocus = null;
-      const last = focus || nodes.filter(reached).sort((a, b) => b.cy - a.cy)[0];
+      const last = focus || nodes.filter(reached).sort((a, b) => (HOR ? b.x - a.x : b.cy - a.cy))[0];
       const unit = stage.offsetWidth / 100;
       ox = map.offsetWidth / 2 - (last ? last.x * unit : 0);
       oy = map.offsetHeight * (focus ? .5 : .4) - (last ? last.cy * unit : 0);
       clamp();
-      if (focus) routeEl.querySelector(`.r-node[data-key="${CSS.escape(focus.key)}"]`)?.classList.add('focus');
     });
 
     routeEl.onclick = (e) => {
