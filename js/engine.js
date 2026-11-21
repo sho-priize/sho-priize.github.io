@@ -123,9 +123,10 @@
         .then((b) => new Promise((ok, no) => { const p = ac().decodeAudioData(b, ok, no); p?.catch?.(no); }))
         .then((buf) => { buffers[src] = buf; }).catch(() => { delete buffers[src]; });
     };
+    const live = () => ctx && ctx.state === 'running';
     const file = (src, loop = false, vol = 1) => {
       const c = ac(), buf = buffers[src];
-      if (c && buf && buf !== 'loading') {
+      if (c && live() && buf && buf !== 'loading') {
         if (muted) return () => {};
         const n = c.createBufferSource(), g = c.createGain();
         n.buffer = buf; n.loop = loop; g.gain.value = vol;
@@ -133,8 +134,21 @@
         return () => { try { n.stop(); } catch {} };
       }
       load(src);
-      const a = new Audio(src); a.loop = loop; a.muted = muted; a.volume = vol; a.play().catch(() => {});
-      return () => a.pause();
+      // 효과음 엔진이 멈춰 있거나 아직 못 받았으면: 첫 터치 때 미리 재생 허락받아 둔 <audio> 로 (아이폰 자동재생 막힘 방지)
+      if (muted) return () => {};
+      const a = pool[src] || new Audio(src);
+      a.loop = loop; a.volume = vol;
+      try { a.currentTime = 0; } catch {}
+      a.play().catch(() => {});
+      return () => { a.pause(); a.loop = false; };
+    };
+    const pool = {};
+    // 아이폰 무음(진동) 모드에서도 효과음이 나게: 터치 순간 무음 <audio> 를 한 번 재생하면 페이지 소리가 '미디어 재생' 취급이 됨
+    let silentAt = 0;
+    const silentKick = () => {
+      if (performance.now() - silentAt < 3000 || !video.paused) return;   // 영상 재생 중엔 건드리지 않음
+      silentAt = performance.now();
+      try { const a = new Audio('sound/silence.mp3'); a.play().catch(() => {}); } catch {}
     };
     const S = CFG.sounds || {};
     let lastClick = 0;
@@ -144,6 +158,15 @@
       unlock() {
         try {
           unlocked = true;
+          silentKick();
+          // 효과음 파일마다 <audio> 를 하나씩 만들어 이 터치 안에서 재생 허락을 받아 둠 (예비용)
+          Object.values(S).forEach((src) => {
+            if (!src || pool[src]) return;
+            // 무음 파일로 먼저 재생해서 허락을 받은 뒤 진짜 효과음으로 바꿔 끼움 (허락은 그대로 유지됨)
+            const a = new Audio('sound/silence.mp3'); a.preload = 'auto'; pool[src] = a;
+            const swap = () => { a.pause(); a.src = src; a.load(); };
+            a.play().then(swap).catch(swap);
+          });
           const c = ac(); if (!c) return;
           Object.values(S).forEach(load);
           if (c.state !== 'running') c.resume();   // 'suspended' / 'interrupted'(전화·앱 전환 후) 모두 다시 켬
@@ -161,10 +184,11 @@
         return () => clearInterval(iv);
       },
       ding() { S.message ? file(S.message) : (note(1568, 0, .25, .12), note(2093, .09, .45, .1)); },
-      pop() { note(1568, 0, .25, .12); note(2093, .09, .45, .1); },   // 대화방 안: 처음 만든 '띵' 합성음
+      pop() { if (!live() && S.message) { ac(); file(S.message); return; } note(1568, 0, .25, .12); note(2093, .09, .45, .1); },   // 대화방 안: 처음 만든 '띵' 합성음
       ringback() {
         // 연결음 파일(2.5초 울림 + 1초 쉼)을 계속 반복
         const c = ac(), buf = buffers[S.ringback];
+        if (S.ringback && !live()) return file(S.ringback, true, .8);   // 효과음 엔진이 멈춰 있으면 <audio> 로
         if (S.ringback && c && buf && buf !== 'loading') {
           if (muted) return () => {};
           const n = c.createBufferSource(), g = c.createGain();
