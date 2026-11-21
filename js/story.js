@@ -197,7 +197,7 @@ window.STORY = {
       dateLabel: '11월 25일',   // 이 장면 메시지 위에 날짜 구분
       msgs: [
         ['me', '잘 돼가고 있어?'],
-        ['앤톤', { img: 'media/images/anton_photo.jpg' }],   // ← 셀카 받으면 교체
+        ['앤톤', { img: 'media/images/cake.jpg' }],   // 케이크 준비 사진 (assets/cake.webp)
         ['앤톤', '지금 준비 다했음 ㅋㅋ'],
         ['앤톤', '타로 형한테 전화해서 불러주면 안돼요 ?'],
       ],
@@ -473,7 +473,8 @@ window.STORY = {
       msgs: [
         ['은석', { video: 'media/clips/daldol1.mp4', thumb: 'media/images/daldol1.jpg' }],
         ['은석', { video: 'media/clips/daldol2.mp4', thumb: 'media/images/daldol2.jpg' }],
-        ['은석', '의심 1도 못하는중ㅋㅋㅋ'],
+        ['은석', '내가 놀아주는 중ㅋㅋㅋ'],
+        ['은석', '의심 1도 못하는데?'],
       ],
       choice: {
         options: [
@@ -487,7 +488,7 @@ window.STORY = {
       type: 'chat', thread: 'eunseok', title: '은석', icon: '은',
       msgs: [
         ['은석', { video: 'media/clips/daldol3.mp4', thumb: 'media/images/daldol3.jpg' }],
-        ['은석', { video: 'media/clips/daldol4.mp4', thumb: 'media/images/daldol4.jpg' }],
+        ['은석', { video: 'media/clips/daldol4.mp4', thumb: 'media/images/daldol4.jpg', wait: 'all' }],   // 영상 둘 다 보고 나와야 다음 문자
         ['은석', '아... 근데 문제가 있어'],
         ['은석', '이거 찍다가 케이크 들켰는데?'],
       ],

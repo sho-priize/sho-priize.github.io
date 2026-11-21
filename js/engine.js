@@ -1188,9 +1188,10 @@
           body.append(bEl);
           Sound.pop();   // 대화방 안에서는 짧은 합성음 (receive 파일은 알림 때만)
           if (text && typeof text === 'object' && 'voice' in text) { await pause(400); if (!(await listenVoice(bEl, text))) return; }
-          if (text && typeof text === 'object' && text.video && text.wait) {   // 이 영상을 봐야 다음 문자
+          if (text && typeof text === 'object' && text.video && text.wait) {   // 이 영상을 봐야 다음 문자 ('all': 이 장면 영상 전부)
             hintLater('영상을 눌러서 확인하세요', 600);
-            await new Promise((ok) => { bEl._viewed = ok; });
+            if (text.wait === 'all') await new Promise((ok) => { vidsDone = ok; checkVids(); });
+            else await new Promise((ok) => { bEl._viewed = ok; });
             if (!alive) return;
             await pause(500);
           }
