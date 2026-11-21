@@ -744,3 +744,10 @@ html:not(.dev) #ph .ph-label { display: none; }
 .r-chip.h.tree { transform: translate(-100%, -50%); }
 .r-chip.h.mid { transform: translate(-50%, -50%); z-index: 1; }
 .r-chip.h.mid { transform: translate(0, -50%); }
+/* 남겨진 한마디 ↔ 엔딩 화면 전환: 덜컥거림 없이 살짝 사라졌다 나타남 */
+#ending .settled .end-head, #ending .settled .end-actions, #ending .settled h1, #ending .settled .end-desc, #ending .settled .end-art { animation: none; }
+#ending .end-head, #ending .end-main, #ending .end-actions, #ending .voice-panel, #ending .vc-stop { transition: opacity .28s ease, transform .5s cubic-bezier(.2,.8,.2,1); }
+#ending .end-card.swap .end-head, #ending .end-card.swap .end-main, #ending .end-card.swap .end-actions,
+#ending .end-card.swap .voice-panel, #ending .end-card.swap .vc-stop { opacity: 0 !important; transition: opacity .18s ease !important; }
+#ending .listening .end-head { opacity: 0; }
+#ending .listening .end-main { transition: opacity .28s ease; }

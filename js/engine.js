@@ -352,9 +352,10 @@
       let idx = 0, offset = 0;
       video.hidden = false; ph.hidden = true;
       video.removeAttribute('poster');
-      Preload.focus();
+      const kept = Preload.focus(list[0]);
       const want0 = Preload.url(list[0]);
-      if (video.getAttribute('src') !== want0) video.src = want0;
+      if (!kept && video.getAttribute('src') !== want0) video.src = want0;
+      if (kept) { video.removeAttribute('src'); video.load(); }   // 이전 장면 영상 정보가 남지 않게 비워 둠
       video.loop = loop && list.length === 1;
       const nextPart = () => {
         if (idx >= list.length - 1) return;
@@ -394,7 +395,16 @@
         tapPlay.hidden = false; // 자동재생 차단 시 터치 유도
         tapPlay.onclick = () => play();
       });
-      play();
+      if (kept) {
+        // 거의 다 받은 영상: 같은 걸 또 받지 않고 다 받아지면 바로 그걸로 재생 (최대 4초, 넘으면 그냥 스트리밍)
+        const tk = token;
+        Preload.wait(list[0], 4000).then((u) => {
+          if (tk !== token) return;
+          video.src = u || list[0];
+          try { video.currentTime = sc.start || 0; } catch {}
+          play();
+        });
+      } else play();
       const last = () => idx === list.length - 1;
       return {
         tick() {},
@@ -1792,13 +1802,23 @@
         voiceStop = () => { cancelAnimationFrame(vraf); audio?.pause(); panel.classList.remove('playing'); barEls.forEach((b) => b.classList.remove('hot')); };
       };
 
+      // 듣기 화면 ↔ 엔딩 화면: 한 번에 자리를 바꾸면 덜컥거려서, 잠깐 흐리게 사라졌다가 새 배치로 나타나게
+      let swapT;
+      const swapMode = (on) => {
+        clearTimeout(swapT);
+        card.classList.add('settled', 'swap');   // settled: 처음 등장 애니메이션은 다시 안 돌게
+        swapT = setTimeout(() => {
+          card.classList.toggle('listening', on);
+          requestAnimationFrame(() => requestAnimationFrame(() => card.classList.remove('swap')));
+        }, 200);
+      };
       endingEl.onclick = (e) => {
         const act = e.target.closest('[data-act]')?.dataset.act;
         if (act === 'restart') { voiceStop(); routeFocus = id; go('@route'); }   // 루트 화면에서 이 엔딩 위치를 보여줌
         if (act === 'share') shareEnding(sc, id);
-        if (act === 'voice') { card.classList.add('listening'); $('.vc-sub', card).textContent = ''; playVoice(); }
+        if (act === 'voice') { $('.vc-sub', card).textContent = ''; swapMode(true); playVoice(); }
         if (act === 'replay') playVoice();
-        if (act === 'stop') { voiceStop(); card.classList.remove('listening'); }
+        if (act === 'stop') { voiceStop(); swapMode(false); }
       };
       if (opts.atChoice && v) $('[data-act="voice"]', card).click();   // 개발용: 듣기 화면 바로 보기
     };
@@ -2173,7 +2193,7 @@
     const sc = SC[id];
     if (!sc?.src || sc.type !== 'clip') return;
     const src = [].concat(sc.src)[0];
-    Preload.focus();
+    if (Preload.focus(src)) return;   // 거의 다 받은 중이면 그걸 기다림 (장면에서 처리)
     if (video.getAttribute('src') !== Preload.url(src)) video.src = Preload.url(src);
     video.muted = muted;
     if (atChoice && sc.choice) { const t = sc.choice.at; try { video.currentTime = typeof t === 'number' ? t : 0; } catch {} }
@@ -2215,7 +2235,11 @@
     $('#btn-start').onclick = start;
     const rb = $('#btn-route'); if (rb) rb.onclick = () => { Sound.unlock(); go('@route'); };
     Confetti.start($('.confetti', titleEl));
-    Preload.ahead(CFG.start); [].concat(SC[CFG.start]?.src || []).forEach(Preload.add);
+    // 첫 장면 영상 미리받기는 타이틀 영상이 나온 뒤에 (같이 받으면 타이틀 영상이 늦게 뜸)
+    let pre = false;
+    const preStart = () => { if (pre) return; pre = true; [].concat(SC[CFG.start]?.src || []).forEach(Preload.add); Preload.ahead(CFG.start); };
+    $('video.t-media', titleEl)?.addEventListener('playing', preStart, { once: true });
+    setTimeout(preStart, 2500);
     Dev.update('(title)');
   }
 
@@ -2237,6 +2261,7 @@
     const imgs = new Set();
     const isVideo = (u) => /\.(mp4|mov|m4v|webm)(\?|$)/i.test(u);
     const queue = []; let active = 0;
+    const prog = new Map();       // 받는 중인 것 → { loaded, total }
     const pump = () => {
       while (active < 2 && queue.length) { active++; queue.shift()().finally(() => { active--; pump(); }); }
     };
@@ -2246,7 +2271,16 @@
       if (!isVideo(url) || blobs.has(url)) return;
       const ctl = new AbortController();
       // 한 번에 2개씩만 받음 (여러 개 동시에 받으면 지금 재생 중인 소리·영상이 끊김)
-      const job = new Promise((done) => queue.push(() => fetch(url, { signal: ctl.signal }).then((r) => { if (!r.ok) throw 0; return r.blob(); })
+      const pr = { loaded: 0, total: 0 }; prog.set(url, pr);
+      const job = new Promise((done) => queue.push(() => fetch(url, { signal: ctl.signal }).then(async (r) => {
+        if (!r.ok) throw 0;
+        pr.total = +r.headers.get('content-length') || 0;
+        if (!r.body?.getReader) return r.blob();
+        // 받은 양을 세면서 받기 (거의 다 받은 건 취소하지 않으려고)
+        const rd = r.body.getReader(), parts = [];
+        for (;;) { const { done: d, value } = await rd.read(); if (d) break; parts.push(value); pr.loaded += value.length; }
+        return new Blob(parts, { type: r.headers.get('content-type') || 'video/mp4' });
+      })
         .then((b) => { const u = URL.createObjectURL(b); blobs.set(url, u); ctls.delete(url); done(u); return u; })
         .catch(() => { blobs.delete(url); ctls.delete(url); const i = order.indexOf(url); if (i >= 0) order.splice(i, 1); done(undefined); })));
       pump();
@@ -2269,7 +2303,18 @@
       url: (u) => { const v = blobs.get(u); return typeof v === 'string' ? v : u; },
       // 지금 바로 볼 영상에 인터넷을 몰아줌: 아직 받는 중인 미리받기는 전부 취소
       // (지금 영상이 다 받아지지 않았으면 원래 주소로 바로 스트리밍 → 처음 프레임이 빨리 나옴)
-      focus() { for (const [u, c] of ctls) { c.abort(); blobs.delete(u); } ctls.clear(); },
+      // keep: 지금 볼 영상. 이미 꽤 받았으면(40% 이상 또는 남은 양 1.2MB 이하) 그건 취소하지 않고 끝까지 받음 → true
+      focus(keep) {
+        let kept = false;
+        for (const [u, c] of ctls) {
+          const p = prog.get(u);
+          if (u === keep && p && p.total && (p.loaded / p.total >= .4 || p.total - p.loaded < 1.2e6)) { kept = true; continue; }
+          c.abort(); blobs.delete(u); ctls.delete(u);
+        }
+        return kept;
+      },
+      // 받는 중인 영상이 끝나길 최대 ms 동안 기다림 → blob 주소 (못 받으면 null)
+      wait(u, ms) { const v = blobs.get(u); if (typeof v === 'string') return Promise.resolve(v); if (!v) return Promise.resolve(null); return Promise.race([v, wait(ms).then(() => null)]); },
       // 앞으로 나올 수 있는 장면들을 가까운 순서로 (영상 3개 정도 앞까지)
       ahead(id) {
         const seen = new Set([id]); let q = [id], found = 0;
@@ -2382,7 +2427,8 @@
   function unlockMedia() {
     Sound.unlock();
     if (mediaUnlocked) return;
-    const src = [].concat(Object.values(SC).find((s) => s.src)?.src || [])[0];
+    // 소리 재생 허락만 받는 용도 → 이미 받아 둔 타이틀 영상(작음)으로. 첫 장면 영상을 여기서 따로 받으면 같은 걸 두 번 받게 됨
+    const src = CFG.titleMedia && !/\.(png|jpe?g|webp|gif)$/i.test(CFG.titleMedia) ? CFG.titleMedia : [].concat(Object.values(SC).find((s) => s.src)?.src || [])[0];
     if (!src) return;
     if (!video.getAttribute('src')) video.src = src;
     else if (!video.paused) { mediaUnlocked = true; return; }   // 이미 재생 중이면 끝
