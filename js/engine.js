@@ -105,6 +105,19 @@
       return ctx;
     };
     document.addEventListener('visibilitychange', () => { if (!document.hidden) ac(); });
+    // 아이폰: 영상 소리·앱 전환 뒤 효과음 엔진이 '켜져 있다'면서 실제로는 멈춰 있는 경우가 있음 → 시간이 안 흐르면 고장으로 표시
+    let lastT = -1, stalled = false, badResume = 0;
+    setInterval(() => {
+      if (!ctx || document.hidden) return;
+      if (ctx.state === 'running') { stalled = ctx.currentTime === lastT; lastT = ctx.currentTime; }
+    }, 1200);
+    // 고장 난 엔진은 버리고 새로 만듦 (터치 순간에만 가능)
+    const fresh = () => {
+      const C = window.AudioContext || window.webkitAudioContext; if (!C) return;
+      const old = ctx; ctx = null; stalled = false; badResume = 0; lastT = -1;
+      try { old?.close(); } catch {}
+      ac();
+    };
     const note = (f, at, dur, vol = .15, type = 'sine') => {
       const c = ac(); if (!c || muted) return;
       const o = c.createOscillator(), g = c.createGain(), t = c.currentTime + at;
@@ -123,7 +136,7 @@
         .then((b) => new Promise((ok, no) => { const p = ac().decodeAudioData(b, ok, no); p?.catch?.(no); }))
         .then((buf) => { buffers[src] = buf; }).catch(() => { delete buffers[src]; });
     };
-    const live = () => ctx && ctx.state === 'running';
+    const live = () => ctx && ctx.state === 'running' && !stalled;
     const file = (src, loop = false, vol = 1) => {
       const c = ac(), buf = buffers[src];
       if (c && live() && buf && buf !== 'loading') {
@@ -151,7 +164,7 @@
       try { const a = new Audio('sound/silence.mp3'); a.play().catch(() => {}); } catch {}
     };
     const S = CFG.sounds || {};
-    let lastClick = 0;
+    let lastClick = 0, lastHtmlClick = 0;
     const clicks = new Set();
     setTimeout(() => { if (ac()) Object.values(S).forEach(load); }, 0);
     return {
@@ -167,9 +180,13 @@
             const swap = () => { a.pause(); a.src = src; a.load(); };
             a.play().then(swap).catch(swap);
           });
+          if (ctx && (stalled || ctx.state === 'closed' || badResume >= 2)) fresh();
           const c = ac(); if (!c) return;
           Object.values(S).forEach(load);
-          if (c.state !== 'running') c.resume();   // 'suspended' / 'interrupted'(전화·앱 전환 후) 모두 다시 켬
+          if (c.state !== 'running') {   // 'suspended' / 'interrupted'(전화·앱 전환 후) 모두 다시 켬
+            c.resume().catch(() => {});
+            setTimeout(() => { if (ctx === c && c.state !== 'running') badResume++; }, 400);   // 다시 켜도 안 켜지면 다음 터치 때 새로 만듦
+          }
           try { if (navigator.audioSession && navigator.audioSession.type !== 'playback') navigator.audioSession.type = 'playback'; } catch {}
           // iOS: 터치 순간 무음 1샘플 재생해야 이후 소리가 남
           const s = c.createBufferSource(); s.buffer = c.createBuffer(1, 1, 22050); s.connect(c.destination); s.start(0);
@@ -207,6 +224,12 @@
         const c = ac(), buf = buffers[S.click];
         if (muted || !c || now - lastClick < 40) return;
         lastClick = now;
+        if (!live()) {   // 효과음 엔진이 멈춰 있으면 예비 <audio> 로 (너무 촘촘하면 건너뜀)
+          const el = pool[S.click]; if (!el || now - lastHtmlClick < 90) return;
+          lastHtmlClick = now;
+          try { el.currentTime = 1.0; el.play().catch(() => {}); clearTimeout(el._t); el._t = setTimeout(() => el.pause(), 300); } catch {}
+          return;
+        }
         if (!buf || buf === 'loading') { load(S.click); note(2400, 0, .03, .05, 'square'); return; }   // 파일 아직이면 짧은 합성음
         const n = c.createBufferSource(), g = c.createGain();
         n.buffer = buf; g.gain.value = .55;
