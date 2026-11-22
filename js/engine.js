@@ -433,7 +433,10 @@
       let idx = 0, offset = 0;
       video.hidden = false; ph.hidden = true;
       video.removeAttribute('poster');
-      const kept = Preload.focus(list[0]);
+      // 루트에서 선택지로 바로 들어옴(quick): 중간부터 스트리밍하면 폰에서 영상·노래가 버벅임 → 통째로 받은 뒤 메모리에서 재생
+      const full = quick && !Preload.ready(list[0]);
+      let pending = null;
+      const kept = full ? Preload.only(list[0]) : Preload.focus(list[0]);
       const want0 = Preload.url(list[0]);
       if (!kept && video.getAttribute('src') !== want0) video.src = want0;
       if (kept) { video.removeAttribute('src'); video.load(); }   // 이전 장면 영상 정보가 남지 않게 비워 둠
@@ -454,7 +457,7 @@
       };
       video.addEventListener('ended', nextPart);
       let release;
-      if (quick) {
+      if (quick && !full) {
         // 선택지 화면으로 바로 이동: 썸네일을 먼저 깔고 바로 보여줌 (영상은 뒤에서 이어서 로딩)
         release = () => {};
         if (sc.route?.thumb) video.poster = sc.route.thumb;
@@ -462,7 +465,7 @@
       } else {
         gate = new Promise((r) => { release = r; });
         video.addEventListener('playing', release, { once: true });
-        setTimeout(release, 10000);
+        setTimeout(release, full ? 21000 : 10000);
       }
       // 세로 영상은 위쪽 칸 대신 화면 가득 채워서
       const fitPortrait = () => stage.classList.toggle('clip-full', stage.dataset.type === 'clip' && video.videoHeight > video.videoWidth);
@@ -479,10 +482,10 @@
       if (kept) {
         // 거의 다 받은 영상: 같은 걸 또 받지 않고 다 받아지면 바로 그걸로 재생 (최대 4초, 넘으면 그냥 스트리밍)
         const tk = token;
-        Preload.wait(list[0], 4000).then((u) => {
+        Preload.wait(list[0], full ? 20000 : 4000).then((u) => {   // 루트에서 온 건 최대 20초까지 다 받길 기다림 (로딩 표시)
           if (tk !== token) return;
           video.src = u || list[0];
-          try { video.currentTime = sc.start || 0; } catch {}
+          try { video.currentTime = pending ?? (sc.start || 0); } catch {}   // 루트에서 온 경우 선택지 시점부터
           play();
         });
       } else play();
@@ -492,7 +495,10 @@
         time: () => offset + video.currentTime,
         end: () => sc.end ?? (last() ? offset + video.duration : Infinity),
         ended: () => last() && video.ended,
-        seek(t) { video.currentTime = Math.max(0, t - offset); if (video.paused) video.play().catch(() => {}); },
+        seek(t) {
+          if (!video.getAttribute('src')) { pending = Math.max(0, t - offset); return; }   // 아직 받는 중: 다 받으면 그 시점부터
+          video.currentTime = Math.max(0, t - offset); if (video.paused) video.play().catch(() => {});
+        },
         rate(r) { video.playbackRate = r; },
         stop() { video.pause(); video.removeEventListener('ended', nextPart); },
         pause() { video.pause(); },
@@ -1715,12 +1721,7 @@
     function step3() {
       if (over) return;
       setStep(3);
-      say('3단계 · 불을 꺼주세요!', '스위치를 잡고 <b>아래로 쭉</b> 내려요');
-      // 화면을 꽉 채운 스위치 사진(cover)에서 스위치 손잡이 위치 → 화살표
-      const r = el.getBoundingClientRect(), k = Math.max(r.width / 452, r.height / 602);
-      const ox = (r.width - 452 * k) / 2, oy = (r.height - 602 * k) / 2;
-      const pull = q('.ms-pull');
-      pull.style.left = `${ox + .545 * 452 * k + 14}px`; pull.style.top = `${oy + .48 * 602 * k}px`;
+      say('3단계 · 불을 꺼주세요!', '');   // 안내 문구·화살표 없이 (스위치만 보고 알아서 내리게)
     }
     const lightsOff = () => {
       if (over) return;   // 시간 초과 뒤에는 성공 처리 안 함 (실패 → 성공 겹침 방지)
@@ -2284,7 +2285,9 @@
       else if (n.kind === 'choice') jumpTo(n.id);
     };
     // 다시 들어갈 수 있는 지점의 영상을 미리 받아 둠 (누르면 바로 시작되게)
-    nodes.filter(reached).filter((n) => SC[n.id]?.src).slice(-4).forEach((n) => [].concat(SC[n.id].src).forEach(Preload.add));
+    // 멤버 고르기(c_pick)는 가장 자주 다시 들어가는 곳이라 제일 먼저
+    const again = nodes.filter(reached).filter((n) => SC[n.id]?.src);
+    [...again.filter((n) => n.id === 'c_pick'), ...again.filter((n) => n.id !== 'c_pick').slice(-3)].forEach((n) => [].concat(SC[n.id].src).forEach(Preload.add));
     Dev.update('(route)');
   }
 
@@ -2293,6 +2296,8 @@
     const sc = SC[id];
     if (!sc?.src || sc.type !== 'clip') return;
     const src = [].concat(sc.src)[0];
+    // 루트에서 선택지로 바로: 영상은 통째로 받은 뒤 재생 (장면에서 처리). 여기서 스트리밍을 시작하면 같은 파일을 두 번 받음
+    if (atChoice && (sc.choice || sc.mash || sc.urgent) && !Preload.ready(src)) { Preload.only(src); return; }
     if (Preload.focus(src)) return;   // 거의 다 받은 중이면 그걸 기다림 (장면에서 처리)
     if (video.getAttribute('src') !== Preload.url(src)) video.src = Preload.url(src);
     video.muted = muted;
@@ -2358,12 +2363,17 @@
     const ctls = new Map();       // 받는 중인 것 → 취소용
     const order = [];
     const MAX = 7;                // 동시에 들고 있을 영상 수
+    const PIN = new Set([].concat(SC.c_pick?.src || []));   // 지우지 않고 계속 들고 있을 영상
     const imgs = new Set();
     const isVideo = (u) => /\.(mp4|mov|m4v|webm)(\?|$)/i.test(u);
-    const queue = []; let active = 0;
+    const queue = []; let active = 0, solo = null;   // solo: 이것만 받는 중 (다 받을 때까지 다른 건 대기)
     const prog = new Map();       // 받는 중인 것 → { loaded, total }
     const pump = () => {
-      while (active < 2 && queue.length) { active++; queue.shift()().finally(() => { active--; pump(); }); }
+      while (active < 2 && queue.length) {
+        const k = solo ? queue.findIndex((j) => j.url === solo) : 0;
+        if (k < 0) break;
+        const [j] = queue.splice(k, 1); active++; j.run().finally(() => { active--; pump(); });
+      }
     };
     const add = (url) => {
       if (!url) return;
@@ -2372,7 +2382,7 @@
       const ctl = new AbortController();
       // 한 번에 2개씩만 받음 (여러 개 동시에 받으면 지금 재생 중인 소리·영상이 끊김)
       const pr = { loaded: 0, total: 0 }; prog.set(url, pr);
-      const job = new Promise((done) => queue.push(() => fetch(url, { signal: ctl.signal }).then(async (r) => {
+      const job = new Promise((done) => queue.push({ url, run: () => fetch(url, { signal: ctl.signal }).then(async (r) => {
         if (!r.ok) throw 0;
         pr.total = +r.headers.get('content-length') || 0;
         if (!r.body?.getReader) return r.blob();
@@ -2382,12 +2392,14 @@
         return new Blob(parts, { type: r.headers.get('content-type') || 'video/mp4' });
       })
         .then((b) => { const u = URL.createObjectURL(b); blobs.set(url, u); ctls.delete(url); done(u); return u; })
-        .catch(() => { blobs.delete(url); ctls.delete(url); const i = order.indexOf(url); if (i >= 0) order.splice(i, 1); done(undefined); })));
+        .catch(() => { blobs.delete(url); ctls.delete(url); const i = order.indexOf(url); if (i >= 0) order.splice(i, 1); done(undefined); })
+        .finally(() => { if (solo === url) { solo = null; setTimeout(pump, 0); } }) }));
       pump();
       blobs.set(url, job); ctls.set(url, ctl);
       order.push(url);
       while (order.length > MAX) {
         const old = order.shift(), v = blobs.get(old);
+        if (PIN.has(old)) { order.push(old); continue; }   // 멤버 고르기 영상은 계속 들고 있음 (루트에서 자주 다시 들어감)
         if (typeof v === 'string' && video.getAttribute('src') !== v) URL.revokeObjectURL(v);
         if (video.getAttribute('src') !== v) blobs.delete(old); else order.push(old);
         if (order.length <= MAX) break;
@@ -2414,6 +2426,13 @@
         return kept;
       },
       // 받는 중인 영상이 끝나길 최대 ms 동안 기다림 → blob 주소 (못 받으면 null)
+      ready: (u) => typeof blobs.get(u) === 'string',
+      // 이 영상 하나만 받음: 다른 미리받기는 취소하고, 이건 얼마나 받았든 끝까지 (없으면 새로 시작) → true
+      only(keep) {
+        for (const [u, c] of ctls) { if (u === keep) continue; c.abort(); blobs.delete(u); ctls.delete(u); }
+        if (typeof blobs.get(keep) !== 'string') { solo = keep; if (!blobs.has(keep)) add(keep); }
+        return true;
+      },
       wait(u, ms) { const v = blobs.get(u); if (typeof v === 'string') return Promise.resolve(v); if (!v) return Promise.resolve(null); return Promise.race([v, wait(ms).then(() => null)]); },
       // 앞으로 나올 수 있는 장면들을 가까운 순서로 (영상 3개 정도 앞까지)
       ahead(id) {

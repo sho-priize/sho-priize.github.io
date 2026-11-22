@@ -675,6 +675,7 @@ window.STORY = {
       msgs: [
         ['성찬', { video: 'media/clips/sc4.mp4', thumb: 'media/images/sc4.jpg', hold: 1, wait: true }],   // 다 보면(마지막 장면 1초 유지) 다음 문자
         ['성찬', '오마이갓 비상사태'],
+        ['성찬', '타로형 기빨렸다'],
       ],
       auto: 1300,
       next: 'n_sc4',
@@ -726,7 +727,6 @@ window.STORY = {
       type: 'chat', thread: 'sungchan', title: '성찬', icon: '성',
       msgs: [
         ['성찬', { voice: 'media/voices/sc6.m4a', dur: 2, subs: [] }],   // sc6 소리만
-        ['성찬', '그런 건 내 전문분야가 아니지ㅣ'],
         ['성찬', '나는 신나는게 자신 있지'],
       ],
       auto: 1300,

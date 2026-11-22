@@ -699,7 +699,7 @@ html:not(.dev) #ph .ph-label { display: none; }
 .mission.off .ms-sw .down { opacity: 1; }
 .ms-pull { position: absolute; font: 900 40px/1 var(--sans); color: #fff; font-style: normal; opacity: 0; z-index: 3; pointer-events: none;
   text-shadow: 0 0 6px #000, 0 0 16px rgba(255,140,40,.95); translate: 0 var(--dy, 0); }
-.mission[data-step="3"] .ms-pull { opacity: 1; animation: msPull 1s ease-in-out infinite; }
+/* 3단계 화살표 안내는 뺌 (.ms-pull 안 보임) */
 .mission.off .ms-pull { opacity: 0; animation: none; }
 .mission[data-step="2"] .ms-stick { transform-origin: 50% -4.5cqw; }
 .mission.held .ms-stick { rotate: -50deg; }
