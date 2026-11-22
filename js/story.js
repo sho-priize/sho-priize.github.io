@@ -180,7 +180,7 @@ window.STORY = {
       route: { title: '마지막 체크', thumb: 'media/images/thumbs/n_check.jpg' },
       lines: [
         '잘할 수 있을지 걱정되지만 맡겨보았다.',
-        '이제 깜짝파티 날...',
+        '깜짝파티 날...',
         '마지막 체크를 해볼까?',
       ],
       choice: {   // 버튼 하나 — 눌러야만 넘어감
@@ -308,7 +308,7 @@ window.STORY = {
       type: 'ending',
       title: '어떠까쥬?',
       route: { thumb: 'media/images/thumbs/e_love.jpg' },
-      desc: '그래도 쇼타로는 기분이 좋았을지도…',
+      desc: '아직 끝이 아니다.. 다시 해보자',
       bg: ['#4a2a3a', '#0c060a'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
@@ -771,7 +771,7 @@ window.STORY = {
     p_wonbin2: {
       type: 'chat', thread: 'wonbin', title: '원빈', icon: '원',
       msgs: [
-        ['원빈', '아 전화왔잖아'],
+        ['원빈', '아 전화왔는데?'],
         ['원빈', 'ㅏㅣㅏㅣㅏㅣ어떡하지'],
       ],
       choice: { options: [{ text: '들키지 말고 받아', reply: false, next: 'c_wonbin1' }] },
@@ -790,7 +790,7 @@ window.STORY = {
       auto: 1000,
       next: 'c_wonbin2',
     },
-    // 건너뛰기 불가. 재생 중 원빈 문자가 위에 알림으로 → 19초 뒤 긴급상황: 8초 안에 알림 눌러 'ㄴㄴ 끊지마' 전송
+    // 건너뛰기 불가. 재생 중 원빈 문자가 위에 알림으로 → 19초 뒤 긴급상황: 7초 안에 알림 눌러 'ㄴㄴ 끊지마' 전송
     c_wonbin2: {
       type: 'clip', src: 'media/clips/wonbin2.mp4',
       noSkip: true,
@@ -811,7 +811,7 @@ window.STORY = {
         at: 19.6,
         text: '원빈이에게 끊지 말라고 답장해주세요!',
         placeholder: 'ㄴㄴ 끊지마', answer: 'ㄴㄴ 끊지마',   // 띄어쓰기는 상관없음
-        time: 8,   // 긴급상황 뜬 뒤 알림 누르고 입력·전송까지 8초
+        time: 7,   // 긴급상황 뜬 뒤 알림 누르고 입력·전송까지 7초
         replies: ['알겠어', '해결하고 연락할게'], repliesDelay: 1.5,   // 보낸 뒤 원빈 답장 → 내러티브
         success: 'n_wonbin_ok', fail: 'c_wonbin3',
       },
