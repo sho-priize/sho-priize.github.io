@@ -409,8 +409,12 @@
   // 안내(CTA)는 지금 장면에서만 유효. 장면이 바뀐 뒤 늦게 도착한 요청은 무시
   // 사용자가 뭔가 하면(탭·선택·다음 장면) clearCtas() → ctaNo 가 바뀌어서 예약돼 있던 안내도 전부 취소됨
   let sceneNo = 0, ctaNo = 0;
-  function showHint(text, no = sceneNo, c = ctaNo) { if (no !== sceneNo || c !== ctaNo) return; hint.textContent = text; hint.hidden = false; }
-  function hintLater(text, ms) { const no = sceneNo, c = ctaNo; setTimeout(() => showHint(text, no, c), ms); }
+  // need: 안내를 띄우는 순간에도 아직 그 행동이 필요한지 확인 (이미 했으면 안 띄움). 영상·사진을 크게 보는 중에도 안 띄움
+  function showHint(text, no = sceneNo, c = ctaNo, need) {
+    if (no !== sceneNo || c !== ctaNo || stage.classList.contains('viewing') || (need && !need())) return;
+    hint.textContent = text; hint.hidden = false;
+  }
+  function hintLater(text, ms, need) { const no = sceneNo, c = ctaNo; setTimeout(() => showHint(text, no, c, need), ms); }
   function clearCtas() {
     ctaNo++;
     hint.hidden = true; hint.textContent = '';
@@ -1118,22 +1122,23 @@
     // 영상 메시지 보기: 폰 화면 위에 꽉 차게 재생, 끝나거나 화면을 누르면 닫힘
     let vidsDone = null;
     const leftVids = () => [...pscreen.querySelectorAll('.bub.vid')].filter((b) => b.dataset.scene === id && !b.classList.contains('viewed'));
+    const needVids = () => leftVids().length > 0;
     const checkVids = () => { if (!leftVids().length && vidsDone) { const f = vidsDone; vidsDone = null; f(); } };
     const openVideo = (b) => {
       clearCtas();
       const ov = document.createElement('div');
       ov.className = 'vviewer';
       ov.innerHTML = `<video playsinline webkit-playsinline src="${b.dataset.video}"></video><button class="vv-x" aria-label="닫기">✕</button>`;
-      pscreen.append(ov);
+      pscreen.append(ov); stage.classList.add('viewing');   // 보는 동안 안내·선택지 가림
       const v = $('video', ov);
       v.muted = muted;
       v.play().catch(() => { v.muted = true; v.play().catch(() => {}); });
       let closed = false;
       const close = () => {
         if (closed) return; closed = true;
-        v.pause(); ov.classList.add('out'); setTimeout(() => ov.remove(), 250);
+        v.pause(); ov.classList.add('out'); setTimeout(() => ov.remove(), 250); stage.classList.remove('viewing');
         b.classList.add('viewed'); b._viewed?.(); checkVids();
-        if (leftVids().length) hintLater('영상을 눌러서 확인하세요', 900);
+        hintLater('영상을 눌러서 확인하세요', 900, needVids);
       };
       v.addEventListener('ended', () => (b.dataset.hold ? setTimeout(close, +b.dataset.hold * 1000) : close()));   // hold: 마지막 장면 n초 유지
       ov.addEventListener('click', (e) => { e.stopPropagation(); close(); });
@@ -1160,7 +1165,7 @@
     const listenVoice = (el, m) => new Promise((done) => {
       const btn = $('.vm-play', el);
       el.classList.add('wait');
-      hintLater('▶ 눌러서 듣기', 3000);   // 도착하고 3초 뒤에 안내
+      hintLater('▶ 눌러서 듣기', 3000, () => el.classList.contains('wait'));   // 도착하고 3초 뒤에 안내 (이미 눌렀으면 안 띄움)
       btn.addEventListener('click', (ev) => {
         ev.stopPropagation();
         el.classList.remove('wait'); el.classList.add('playing'); clearCtas();
@@ -1274,7 +1279,7 @@
           Sound.pop();   // 대화방 안에서는 짧은 합성음 (receive 파일은 알림 때만)
           if (text && typeof text === 'object' && 'voice' in text) { await pause(400); if (!(await listenVoice(bEl, text))) return; }
           if (text && typeof text === 'object' && text.video && text.wait) {   // 이 영상을 봐야 다음 문자 ('all': 이 장면 영상 전부)
-            hintLater('영상을 눌러서 확인하세요', 600);
+            hintLater('영상을 눌러서 확인하세요', 600, () => (text.wait === 'all' ? needVids() : !bEl.classList.contains('viewed')));
             if (text.wait === 'all') await new Promise((ok) => { vidsDone = ok; checkVids(); });
             else await new Promise((ok) => { bEl._viewed = ok; });
             if (!alive) return;
@@ -1289,7 +1294,7 @@
       // 영상 메시지가 있으면 전부 눌러서 본 뒤에 선택지
       const vids = [...body.querySelectorAll('.bub.vid')].filter((b) => b.dataset.scene === id);
       if (vids.some((b) => !b.classList.contains('viewed'))) {
-        hintLater('영상을 눌러서 확인하세요', 600);
+        hintLater('영상을 눌러서 확인하세요', 600, needVids);
         await new Promise((ok) => { vidsDone = ok; checkVids(); });
         if (!alive) return;
         await pause(500);
@@ -1347,7 +1352,7 @@
         if (!alive) return;
         $('.banner', pscreen).classList.add('in');
         Sound.ding(); vibrate([200, 100, 200]);
-        hintLater('알림을 탭하세요', 1200);
+        hintLater('알림을 탭하세요', 1200, () => !!pscreen.onclick);
       }, sc.notifyDelay ?? (n.overlay ? 300 : 900)));
       pscreen.onclick = () => {
         if (!$('.banner.in', pscreen)) return;
