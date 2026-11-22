@@ -724,8 +724,8 @@ html:not(.dev) #ph .ph-label { display: none; }
 .c-timer.quick i { height: 8px; border-radius: 8px; }
 .c-timer.quick i::after { background: #ff5d6c; }
 #choices.timeout .opt { opacity: .35; }
-.ur-body { overflow-y: auto; justify-content: flex-start; }
-.ur-body > :first-child { margin-top: auto; }
+.ur-body { position: relative; overflow: hidden; touch-action: none; }
+.ur-in { position: absolute; left: 12px; right: 12px; bottom: 10px; display: flex; flex-direction: column; gap: 4px; }
 .ur-b span img { display: block; max-width: 160px; border-radius: 12px; }
 /* 엔딩에서 '다시 하기'로 온 경우 그 엔딩 위치 강조 */
 .r-node.card.focus { outline: 3px solid var(--accent); outline-offset: 4px; animation: rFocus 1.2s ease-in-out 3; }

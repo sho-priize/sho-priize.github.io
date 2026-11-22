@@ -204,14 +204,11 @@
 .m-scroll {
   position: absolute; top: calc(var(--safe-t) + 92px); bottom: max(calc(var(--safe-b) + 60px), var(--sheet, 0px));
   left: 0; right: 0;
-  display: flex; flex-direction: column-reverse;   /* 아래 기준: 내용이 늘거나 칸이 줄어도 맨 아래가 그대로 보임 */
-  overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y;
-  scrollbar-width: none;
+  overflow: hidden; touch-action: none;   /* 브라우저 스크롤 상자 대신 직접 끌어서 스크롤 (X 하단 모듈 방지) */
   transition: bottom .35s cubic-bezier(.2,.8,.2,1);
 }
-.m-scroll::-webkit-scrollbar { display: none; }
 .m-body {
-  flex: none; padding: 0 12px 8px;
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 0 12px 8px;   /* 맨 아래에 붙어 위로 쌓임 */
   display: flex; flex-direction: column; gap: 2px;
 }
 .m-ts { align-self: center; display: flex; flex-direction: column; align-items: center; gap: 2px; margin-bottom: 10px; font: 400 11px/1.2 -apple-system, var(--sans); color: rgba(255,255,255,.45); }

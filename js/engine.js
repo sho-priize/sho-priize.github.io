@@ -18,6 +18,36 @@
   const pad2 = (n) => String(n).padStart(2, '0');
   const IS_IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const mmss = (s) => `${pad2(Math.floor(s / 60))}:${pad2(s % 60)}`;
+  // 대화창 스크롤: 브라우저 스크롤 상자(overflow:auto)를 쓰지 않고 직접 움직임.
+  // X 앱은 화면 안 스크롤 상자가 생기거나 움직이면 하단 게시글 모듈을 다시 올림 → 스크롤 상자 자체를 없앰.
+  // outer: 잘라내는 칸(overflow hidden), inner: 맨 아래에 붙어 있는 내용. o = 맨 아래에서 위로 올려 본 거리
+  const bottomScroller = (outer, inner) => {
+    let o = 0, v = 0, raf = 0, drag = null, moved = false;
+    const max = () => Math.max(0, inner.offsetHeight - outer.clientHeight);
+    const set = (n) => { o = Math.max(0, Math.min(max(), n)); inner.style.transform = o ? `translateY(${o}px)` : ''; };
+    const glide = () => { v *= .94; set(o + v); raf = Math.abs(v) > .3 && o > 0 && o < max() ? requestAnimationFrame(glide) : 0; };
+    outer.addEventListener('pointerdown', (e) => {
+      cancelAnimationFrame(raf); v = 0; moved = false;
+      drag = { y: e.clientY, o, t: performance.now(), ly: e.clientY };
+    });
+    addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      const dy = e.clientY - drag.y;
+      if (Math.abs(dy) > 6) moved = true;
+      if (!moved) return;
+      const now = performance.now();
+      v = (e.clientY - drag.ly) / Math.max(1, now - drag.t) * 16; drag.ly = e.clientY; drag.t = now;
+      set(drag.o + dy);
+    });
+    const end = () => { if (!drag) return; drag = null; if (moved && Math.abs(v) > 1) raf = requestAnimationFrame(glide); };
+    addEventListener('pointerup', end); addEventListener('pointercancel', end);
+    outer.addEventListener('click', (e) => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);   // 끌어서 스크롤한 건 누르기로 치지 않음
+    outer.addEventListener('wheel', (e) => { set(o - e.deltaY); e.preventDefault(); }, { passive: false });
+    // 새 메시지가 오면 맨 아래로 (위로 올려 보던 중이었어도), 칸이 줄거나 늘면 범위만 다시 맞춤
+    new MutationObserver(() => set(0)).observe(inner, { childList: true });
+    if (window.ResizeObserver) new ResizeObserver(() => set(o)).observe(outer);
+    return { get o() { return o; }, set };
+  };
   const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   const ICON = {
@@ -645,12 +675,12 @@
       sheet.innerHTML = `
         <div class="ur-time"><s></s></div>
         <div class="ur-head"><span class="back">${ICON.chev}</span><div class="m-av">${esc(initial)}</div><b>${esc(from)}</b></div>
-        <div class="ur-body">${urHistory()}</div>
+        <div class="ur-body"><div class="ur-in">${urHistory()}</div></div>
         <form class="ur-input"><span class="plus">${ICON.plus}</span>
           <label class="field"><span class="ur-ghost"></span><input type="text" lang="ko" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send">
           <button type="submit" class="send" aria-label="보내기">${ICON.up}</button></label></form>`;
       document.body.append(sheet);
-      const ub = $('.ur-body', sheet); requestAnimationFrame(() => { ub.scrollTop = ub.scrollHeight; });
+      bottomScroller($('.ur-body', sheet), $('.ur-in', sheet));
       input = $('input', sheet);
       const bars = [$('.ur-bar s', ov), $('.ur-time s', sheet)];
       // 키보드가 올라오면 보이는 영역에 맞춤
@@ -711,7 +741,7 @@
         const b = document.createElement('div');
         b.className = 'ur-b me pop'; b.innerHTML = '<span></span>';
         b.firstChild.textContent = input.value.trim();
-        $('.ur-body', sheet).append(b); $('.ur-body', sheet).scrollTop = 1e6;
+        $('.ur-in', sheet).append(b);
         hist?.push(['me', b.textContent]);
         sheet.classList.add('sent'); sheet.classList.remove('wrong');
         input.value = ''; sheet.classList.remove('typed');
@@ -719,19 +749,19 @@
         input.blur();
         // 보낸 뒤 원빈 답장 받기 (replies) → 그다음 장면
         (async () => {
-          const body = $('.ur-body', sheet), pause = (ms) => new Promise((r) => setTimeout(r, ms));
+          const body = $('.ur-in', sheet), pause = (ms) => new Promise((r) => setTimeout(r, ms));
           await pause((U.repliesDelay ?? .6) * 1000);
           for (const text of U.replies || []) {
             if (my !== token) return;
             const ty = document.createElement('div');
             ty.className = 'ur-b them typing pop'; ty.innerHTML = '<span><i></i><i></i><i></i></span>';
-            body.append(ty); body.scrollTop = body.scrollHeight;
+            body.append(ty);
             await pause(Math.min(1300, 550 + text.length * 45));
             if (my !== token) return;
             ty.remove();
             const r = document.createElement('div');
             r.className = 'ur-b them pop'; r.innerHTML = '<span></span>'; r.firstChild.textContent = text;
-            body.append(r); hist?.push([from, text]); Sound.pop(); body.scrollTop = body.scrollHeight;
+            body.append(r); hist?.push([from, text]); Sound.pop();
             await pause(450);
           }
           await pause(900);
@@ -1211,11 +1241,8 @@
         const list = e.scene ? SC[e.scene].msgs || [] : [e];
         for (const [who, text] of list) { body.append(bubble(who, text, prev)); prev = who; }
       }
-      // 위로 스크롤해서 지난 메시지 볼 수 있게. 바깥 .m-scroll 이 아래 기준(column-reverse)이라
-      // 새 메시지·사진·선택지 시트가 생겨도 스크립트로 스크롤하지 않고 맨 아래가 유지됨
-      // (X 앱: 스크롤이 위로 움직이면 하단 게시글 모듈이 다시 올라옴 → 위로 움직이는 스크롤을 만들지 않음)
-      const scroller = body.parentElement;
-      new MutationObserver(() => { if (scroller.scrollTop < -2) scroller.scrollTop = 0; }).observe(body, { childList: true });   // 사용자가 위로 올려 보던 중이면 새 메시지 때 맨 아래로 (아래로만 이동)
+      // 위로 끌어서 지난 메시지 볼 수 있게 (브라우저 스크롤 상자 없이: X 하단 모듈 방지)
+      body._scroll = bottomScroller(body.parentElement, body);
       hist.push({ scene: id });
       if (sc.dateLabel) { body.append(dateRow(sc.dateLabel === 'now' ? nowLabel() : sc.dateLabel)); prev = null; }
       run(body, prev);
@@ -2398,9 +2425,10 @@
 
   /* ---------- 타이틀 컨페티 ---------- */
   const Confetti = (() => {
-    const COLORS = ['#ff8a3d', '#ffd84d', '#ff6cc7', '#9b7bff', '#ffffff', '#7fe3ff'];
+    // 생일 모양 컨페티 (시안 5번): 별·하트·동그라미, 파스텔 + 포인트 오렌지
+    const COLORS = ['#ffb3c7', '#ffd27a', '#b9a7ff', '#9fe6ff', '#ffffff', '#ff8a3d'];
     const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const AMBIENT = calm ? 40 : 55;
+    const AMBIENT = calm ? 28 : 39;   // 시안 5번(30개)보다 30% 많게
     let cv, ctx, raf = 0, parts = [], w = 0, h = 0, unit = 1;
     const resize = () => {
       // offsetWidth 는 회전(transform) 영향을 받지 않는 실제 무대 크기
@@ -2418,22 +2446,23 @@
       // 처음 깔리는 조각은 화면 전체에 흩어 두고, 다시 위에서 나올 땐 높이를 들쭉날쭉하게
       y: burst ? h * (.6 + Math.random() * .3) : spreadY ? Math.random() * h : -Math.random() * h * .6,
       vx: (burst ? (Math.random() - .5) * 10 : (Math.random() - .5) * .8) * unit,
-      vy: (burst ? -(Math.random() * 10 + 5) : Math.random() * 1.2 + .8) * unit,
-      size: (Math.random() * 5 + 5) * unit,
+      vy: (burst ? -(Math.random() * 10 + 5) : (Math.random() * .8 + .5) * 2.6) * unit,   // 잔잔한 조각은 일정한 속도로 천천히
+      size: (Math.random() * 3 + 3) * 4.9 * unit,
       rot: Math.random() * 6.3, vr: (Math.random() - .5) * .2,
       flip: Math.random() * 6.3, vf: Math.random() * .12 + .05,
       color: COLORS[(Math.random() * COLORS.length) | 0],
-      round: Math.random() < .22,
+      shape: (Math.random() * 3) | 0,   // 0 별, 1 하트, 2 동그라미
     });
+    const star = (r) => { ctx.beginPath(); for (let k = 0; k < 10; k++) { const a = k * Math.PI / 5 - Math.PI / 2, rr = k % 2 ? r * .45 : r; ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); } ctx.fill(); };
+    const heart = (r) => { ctx.beginPath(); ctx.moveTo(0, r * .35); ctx.bezierCurveTo(r, -r * .4, r * .4, -r, 0, -r * .35); ctx.bezierCurveTo(-r * .4, -r, -r, -r * .4, 0, r * .35); ctx.fill(); };
     const frame = () => {
       raf = requestAnimationFrame(frame);
       if (!w && !resize()) return;   // 아직 크기가 안 잡혔으면 다음 프레임에
       ctx.clearRect(0, 0, w, h);
       for (let k = parts.length - 1; k >= 0; k--) {
         const p = parts[k];
-        p.vy = Math.min(p.vy + .12 * unit, 1.9 * unit);   // 중력 + 종단속도 → 팔랑팔랑
-        p.vx *= .985;
-        p.x += p.vx + Math.sin(p.flip) * .5 * unit; p.y += p.vy;
+        if (p.burst) { p.vy = Math.min(p.vy + .12 * unit, 1.9 * unit); p.vx *= .985; }   // 팡 터진 조각만 중력
+        p.x += p.vx + Math.sin(p.flip) * 1.5 * unit; p.y += p.vy;
         p.rot += p.vr; p.flip += p.vf;
         if (p.y > h + 20 * unit) {
           // 처음 팡 터진 조각은 사라지고, 잔잔한 조각만 위에서 다시 (한꺼번에 몰려 내려오지 않게)
@@ -2443,8 +2472,10 @@
         ctx.save();
         ctx.translate(p.x, p.y); ctx.rotate(p.rot);
         ctx.fillStyle = p.color; ctx.globalAlpha = .9;
-        if (p.round) { ctx.beginPath(); ctx.arc(0, 0, p.size * .35, 0, 6.3); ctx.fill(); }
-        else ctx.fillRect(-p.size / 2, -p.size * .22 * Math.abs(Math.cos(p.flip)), p.size, p.size * .45 * Math.abs(Math.cos(p.flip)) + .5);
+        ctx.scale(.6 + .4 * Math.abs(Math.cos(p.flip)), 1);   // 팔랑팔랑 뒤집히는 느낌
+        if (p.shape === 0) star(p.size * .6);
+        else if (p.shape === 1) heart(p.size * .6);
+        else { ctx.beginPath(); ctx.arc(0, 0, p.size * .35, 0, 6.3); ctx.fill(); }
         ctx.restore();
       }
     };
