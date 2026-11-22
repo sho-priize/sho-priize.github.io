@@ -1998,7 +1998,7 @@
   function shareEnding(sc, id) {
     const got = ENDING_IDS.filter((e) => new Set(store.get(ENDINGS_KEY, [])).has(e)).length;
     const kind = sc.kind === 'good' ? '🎉 GOOD ENDING' : '😢 BAD ENDING';
-    const text = `${kind} : ${sc.title}\n현재까지 ${got}/${ENDING_IDS.length}개 엔딩 수집!\n라이즈와 함께 쇼타로의 생일파티 준비하기⬇️⬇️\n${SITE}/e/${id}.html`;
+    const text = `${kind} : ${sc.title}\n현재까지 ${got}/${ENDING_IDS.length}개 엔딩 수집!\n\n라이즈와 함께 쇼타로의 생일파티 준비하기⬇️⬇️\n${CFG.shareTag ? CFG.shareTag + '\n' : ''}${SITE}/e/${id}.html`;   // 해시태그는 story.js config.shareTag
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
     const w = window.open(url, '_blank');
     if (!w) location.href = url;   // 새 창이 막히면(인앱 브라우저 등) 지금 창에서

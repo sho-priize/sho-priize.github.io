@@ -68,6 +68,7 @@ window.STORY = {
     kicker: 'Happy birthday, ショウちゃん!',
     tagline: '라이즈와 함께 쇼타로의 생일파티를 준비하세요\n목표는 하나: 절대 들키지 말 것!',
     start: 'p_call1',
+    shareTag: '#타로생일_축하해야징_푸하',   // 엔딩 공유 트윗에 들어가는 해시태그 (바꾸려면 여기만)
     titleMedia: 'media/clips/main.mp4',   // 타이틀 오른쪽 영상/이미지 (jpg·png도 가능)
     routeStart: { title: '시작', thumb: 'media/images/thumbs/start.jpg' },   // 루트 화면 첫 노드
     loopRate: 0.5,              // 선택지 대기 중 기본 재생 속도
@@ -169,8 +170,9 @@ window.STORY = {
     n_trust: {
       type: 'narration',
       lines: [
-        '잘할 수 있을지 걱정되지만 맡겨보았다',
-        '다 같이 모인 저녁시간... 일단 지켜보자',
+        '라이즈에게 다 맡겼다.',
+        '지금까지는 다 순조로운 듯 하다.',
+        '이제부터가 중요하니 지켜보자..',
       ],
       next: 'c_act',
     },
