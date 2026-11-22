@@ -617,12 +617,19 @@ window.STORY = {
         ['성찬', '그건 나지'],
         ['성찬', { voice: 'media/voices/sc7.m4a', dur: 2, subs: [] }],   // sc7 소리만, 눌러서 듣기
       ],
-      choice: { options: [{ text: '타로 텐션 미리 올려줘', next: 'n_sc1' }] },   // 전송 → 내러티브 → 성찬이 sc1 영상
+      choice: { options: [{ text: '타로 텐션 미리 올려줘', next: 'p_sc_good1b' }] },   // 전송 → 성찬 '기대해' → 내러티브 → 성찬이 sc1 영상
+    },
+    p_sc_good1b: {
+      type: 'chat', thread: 'sungchan', title: '성찬', icon: '성',
+      msgs: [['성찬', '기대해']],
+      auto: 1600,
+      next: 'n_sc1',
     },
     n_sc1: { type: 'narration', lines: ['음… 많이 시끄러워질 것 같다.', '그래도 재밌을 듯 하다.'], next: 'p_sc2' },
     p_sc2: {
       type: 'chat', thread: 'sungchan', title: '성찬', icon: '성',
       route: { title: '더 올려? ①', thumb: 'media/images/thumbs/p_sc2.jpg' },
+      dateLabel: '+60',   // '기대해' 와 영상 사이 시간 구분 (한 시간쯤 흐른 것처럼)
       msgs: [
         ['성찬', { video: 'media/clips/sc1.mp4', thumb: 'media/images/sc1.jpg' }],   // 영상 메시지로 와서 눌러서 보기
         ['성찬', '어때 더 올려?'],

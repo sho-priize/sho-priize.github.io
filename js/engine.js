@@ -1242,14 +1242,14 @@
       let prev = null;
       const dateRow = (label) => { const d = document.createElement('div'); d.className = 'm-ts m-date'; d.textContent = label; return d; };
       for (const e of hist) {
-        if (e.scene && SC[e.scene].dateLabel) { body.append(dateRow(SC[e.scene].dateLabel === 'now' ? nowLabel() : SC[e.scene].dateLabel)); prev = null; }
+        if (e.scene && SC[e.scene].dateLabel) { body.append(dateRow(dateLabelText(SC[e.scene].dateLabel))); prev = null; }
         const list = e.scene ? SC[e.scene].msgs || [] : [e];
         for (const [who, text] of list) { body.append(bubble(who, text, prev)); prev = who; }
       }
       // 위로 끌어서 지난 메시지 볼 수 있게 (브라우저 스크롤 상자 없이: X 하단 모듈 방지)
       body._scroll = bottomScroller(body.parentElement, body);
       hist.push({ scene: id });
-      if (sc.dateLabel) { body.append(dateRow(sc.dateLabel === 'now' ? nowLabel() : sc.dateLabel)); prev = null; }
+      if (sc.dateLabel) { body.append(dateRow(dateLabelText(sc.dateLabel))); prev = null; }
       run(body, prev);
     };
 
@@ -1468,10 +1468,12 @@
 
   /* 폰 시계 / 날짜 */
   // 아이폰 문자 시간 구분: '오늘 오후 9:41'
-  function nowLabel() {
-    const d = new Date(), h = d.getHours();
+  // 'now' → 지금 시각, '+60' 처럼 쓰면 지금부터 60분 뒤 (시간이 흐른 것처럼)
+  function nowLabel(addMin = 0) {
+    const d = new Date(Date.now() + addMin * 60000), h = d.getHours();
     return `오늘 ${h < 12 ? '오전' : '오후'} ${h % 12 || 12}:${pad2(d.getMinutes())}`;
   }
+  function dateLabelText(l) { return l === 'now' ? nowLabel() : /^\+\d+$/.test(l) ? nowLabel(+l.slice(1)) : l; }
   function clockText() {
     if (CFG.phone?.clock) return CFG.phone.clock;
     const d = new Date();

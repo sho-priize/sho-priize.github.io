@@ -368,5 +368,7 @@
 .vviewer.photo img { width: 100%; height: 100%; object-fit: contain; }
 .bub.pic:not(.vid) span { cursor: zoom-in; }
 #stage.viewing #choices, #stage.viewing #hint { visibility: hidden; }
+/* 문자 화면: 안내가 아래쪽 메시지(영상 썸네일 등)를 덮지 않게 대화방 머리 바로 아래로 */
+#stage[data-type="chat"] #hint { bottom: auto; top: calc(var(--safe-t) + 104px); }
 /* 긴 문장은 줄을 고르게 나눠서 (한 줄만 길고 한 단어만 아래로 떨어지지 않게) */
 .bub span, .ur-b span { box-sizing: border-box; }
