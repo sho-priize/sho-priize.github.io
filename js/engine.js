@@ -2429,6 +2429,9 @@
     const COLORS = ['#ffb3c7', '#ffd27a', '#b9a7ff', '#9fe6ff', '#ffffff', '#ff8a3d'];
     const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const AMBIENT = calm ? 28 : 39;   // 시안 5번(30개)보다 30% 많게
+    // 메인화면용 골드 반짝이 (시안 3번): 금·흰 별과 점이 천천히 내려오며 반짝임
+    const GOLD = ['#ffd27a', '#ffe9b0', '#ffffff', '#f5b94a'];
+    let style = 'shapes', tick = 0;
     let cv, ctx, raf = 0, parts = [], w = 0, h = 0, unit = 1;
     const resize = () => {
       // offsetWidth 는 회전(transform) 영향을 받지 않는 실제 무대 크기
@@ -2440,7 +2443,9 @@
       w = cv.width = nw; h = cv.height = nh; unit = w / 900;
       return true;
     };
-    const piece = (burst, spreadY) => ({
+    const piece = (burst, spreadY) => tune(basePiece(burst, spreadY));
+    const tune = (p) => { if (style === 'gold') { p.size *= .6; if (!p.burst) p.vy *= .45; p.shape = Math.random() < .5 ? 0 : 2; } return p; };
+    const basePiece = (burst, spreadY) => ({
       burst,
       x: burst ? w * (.1 + Math.random() * .8) : Math.random() * w,
       // 처음 깔리는 조각은 화면 전체에 흩어 두고, 다시 위에서 나올 땐 높이를 들쭉날쭉하게
@@ -2450,7 +2455,8 @@
       size: (Math.random() * 3 + 3) * 4.9 * unit,
       rot: Math.random() * 6.3, vr: (Math.random() - .5) * .2,
       flip: Math.random() * 6.3, vf: Math.random() * .12 + .05,
-      color: COLORS[(Math.random() * COLORS.length) | 0],
+      color: style === 'gold' ? GOLD[(Math.random() * GOLD.length) | 0] : COLORS[(Math.random() * COLORS.length) | 0],
+      tw: Math.random() * 6.3,
       shape: (Math.random() * 3) | 0,   // 0 별, 1 하트, 2 동그라미
     });
     const star = (r) => { ctx.beginPath(); for (let k = 0; k < 10; k++) { const a = k * Math.PI / 5 - Math.PI / 2, rr = k % 2 ? r * .45 : r; ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); } ctx.fill(); };
@@ -2458,6 +2464,7 @@
     const frame = () => {
       raf = requestAnimationFrame(frame);
       if (!w && !resize()) return;   // 아직 크기가 안 잡혔으면 다음 프레임에
+      tick++;
       ctx.clearRect(0, 0, w, h);
       for (let k = parts.length - 1; k >= 0; k--) {
         const p = parts[k];
@@ -2471,8 +2478,8 @@
         }
         ctx.save();
         ctx.translate(p.x, p.y); ctx.rotate(p.rot);
-        ctx.fillStyle = p.color; ctx.globalAlpha = .9;
-        ctx.scale(.6 + .4 * Math.abs(Math.cos(p.flip)), 1);   // 팔랑팔랑 뒤집히는 느낌
+        ctx.fillStyle = p.color; ctx.globalAlpha = style === 'gold' ? .35 + .65 * Math.abs(Math.sin(tick * .06 + p.tw)) : .9;
+        if (style !== 'gold') ctx.scale(.6 + .4 * Math.abs(Math.cos(p.flip)), 1);   // 팔랑팔랑 뒤집히는 느낌 (반짝이는 그대로)
         if (p.shape === 0) star(p.size * .6);
         else if (p.shape === 1) heart(p.size * .6);
         else { ctx.beginPath(); ctx.arc(0, 0, p.size * .35, 0, 6.3); ctx.fill(); }
@@ -2481,8 +2488,8 @@
     };
     const onResize = () => cv && resize();
     return {
-      start(canvas) {
-        this.stop();
+      start(canvas, kind = 'shapes') {
+        this.stop(); style = kind;
         cv = canvas; ctx = cv.getContext('2d'); w = h = 0;
         if (resize()) {
           parts = [
