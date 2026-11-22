@@ -2464,6 +2464,7 @@
       const d = Math.min(devicePixelRatio || 1, 2);
       const nw = cv.offsetWidth * d, nh = cv.offsetHeight * d;
       if (!nw || !nh) return false;
+      if (nw === w && nh === h) return true;
       // 화면 크기가 바뀌면(폰 회전 등) 조각 위치도 같은 비율로 옮김 → 한쪽에 몰리지 않게
       if (w && h) parts.forEach((p) => { p.x *= nw / w; p.y *= nh / h; });
       w = cv.width = nw; h = cv.height = nh; unit = w / 900;
@@ -2513,6 +2514,9 @@
       }
     };
     const onResize = () => cv && resize();
+    // X 앱: 하단 게시글 모듈이 접히고 펴지면 화면 높이가 바뀌는데 창 resize 이벤트가 안 올 때가 있음
+    // → 캔버스 크기 자체를 지켜보다가 바뀌면 다시 맞춤 (안 하면 그림이 늘어나 찌그러짐)
+    const ro = window.ResizeObserver ? new ResizeObserver(onResize) : null;
     return {
       start(canvas, kind = 'shapes') {
         this.stop(); style = kind;
@@ -2528,12 +2532,16 @@
         }
         addEventListener('resize', onResize);
         addEventListener('orientationchange', onResize);
+        window.visualViewport?.addEventListener('resize', onResize);
+        ro?.observe(cv);
         frame();
       },
       stop() {
         cancelAnimationFrame(raf); raf = 0;
         removeEventListener('resize', onResize);
         removeEventListener('orientationchange', onResize);
+        window.visualViewport?.removeEventListener('resize', onResize);
+        ro?.disconnect();
         parts = [];
       },
     };
