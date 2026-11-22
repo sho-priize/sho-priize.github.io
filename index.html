@@ -7,6 +7,22 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>SHO-PRIIZE!</title>
+<script>
+  // X(트위터) 앱 안 브라우저: 앱이 상단을 따로 처리하므로 상태바 여백(--safe-t)을 두지 않음. 다른 브라우저는 그대로
+  (function () {
+    var ua = navigator.userAgent, d = document.documentElement;
+    if (/Twitter|TwitterAndroid|\bX\/\d/i.test(ua) || /[?&]x=1/.test(location.search)) d.classList.add('x-app');
+    // 확인용: 주소 뒤에 ?ua 붙이면 감지 결과 표시
+    if (/[?&]ua\b/.test(location.search)) addEventListener('load', function () {
+      var b = document.createElement('div'), t = document.createElement('i');
+      t.style.cssText = 'position:fixed;top:env(safe-area-inset-top);height:0';
+      document.body.append(t);
+      b.style.cssText = 'position:fixed;left:8px;right:8px;bottom:120px;z-index:99999;background:#fff;color:#000;font:12px/1.4 monospace;padding:10px;border-radius:8px;word-break:break-all';
+      b.textContent = (d.classList.contains('x-app') ? '[X 앱으로 감지됨] ' : '[일반 브라우저] ') + '상단 inset=' + t.getBoundingClientRect().top + 'px / ' + ua;
+      document.body.append(b);
+    });
+  })();
+</script>
 <meta name="description" content="라이즈와 함께 쇼타로의 생일파티를 준비하세요. 목표는 하나: 절대 들키지 말 것!">
 <meta property="og:type" content="website">
 <meta property="og:title" content="SHO-PRIIZE! — Happy birthday, ショウちゃん!">
@@ -19,8 +35,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=1795329183">
-<link rel="stylesheet" href="css/phone.css?v=1795329183">
+<link rel="stylesheet" href="css/style.css?v=1795339460">
+<link rel="stylesheet" href="css/phone.css?v=1795339460">
 </head>
 <body>
 
@@ -69,7 +85,7 @@
   <div id="fade" class="on"></div>
 </main>
 
-<script src="js/story.js?v=1795329183"></script>
-<script src="js/engine.js?v=1795329183"></script>
+<script src="js/story.js?v=1795339460"></script>
+<script src="js/engine.js?v=1795339460"></script>
 </body>
 </html>
