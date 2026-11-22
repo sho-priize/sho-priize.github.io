@@ -617,8 +617,7 @@ window.STORY = {
         ['성찬', '그건 나지'],
         ['성찬', { voice: 'media/voices/sc7.m4a', dur: 2, subs: [] }],   // sc7 소리만, 눌러서 듣기
       ],
-      auto: 900,
-      next: 'n_sc1',
+      choice: { options: [{ text: '타로 텐션 미리 올려줘', next: 'n_sc1' }] },   // 전송 → 내러티브 → 성찬이 sc1 영상
     },
     n_sc1: { type: 'narration', lines: ['음… 많이 시끄러워질 것 같다.', '그래도 재밌을 듯 하다.'], next: 'p_sc2' },
     p_sc2: {

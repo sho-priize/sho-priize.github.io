@@ -1057,6 +1057,7 @@
       }
       el.innerHTML = `${showName ? `<small>${esc(who)}</small>` : ''}<span></span>`;
       el.lastChild.textContent = text;
+      requestAnimationFrame(() => tightBubble(el.lastChild));
       return el;
     };
 
@@ -1320,6 +1321,24 @@
       if (tapNext) pstage.removeEventListener('click', tapNext);
       pscreen.removeEventListener('click', onVidTap); stage.classList.remove('viewing');
     };
+  }
+
+  // 두 줄로 넘어간 말풍선: 실제 글자 폭만큼만 (오른쪽에 빈 공간이 크게 남지 않게)
+  function tightBubble(span) {
+    if (!span?.isConnected || !span.firstChild) return;
+    span.style.width = '';
+    const r = document.createRange(); r.selectNodeContents(span);
+    const lines = () => new Set([...r.getClientRects()].map((x) => Math.round(x.top))).size;
+    const n0 = lines();
+    if (n0 < 2) return;   // 한 줄이면 그대로
+    // 줄 수는 그대로 두고 가장 좁은 폭을 찾음 → 줄 길이가 고르게, 오른쪽 빈 공간 없이
+    let hi = span.getBoundingClientRect().width, lo = hi * .4;
+    for (let k = 0; k < 8; k++) {
+      const mid = (lo + hi) / 2;
+      span.style.width = mid + 'px';
+      if (lines() > n0) lo = mid; else hi = mid;
+    }
+    span.style.width = Math.ceil(hi) + 1 + 'px';
   }
 
   /* ---------- 전화 걸기 (최근 기록 → 발신 화면) ---------- */
