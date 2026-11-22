@@ -784,7 +784,7 @@ window.STORY = {
       choice: { options: [{ text: '들키지 말고 받아', reply: false, next: 'c_wonbin1' }] },
     },
     c_wonbin1: { type: 'clip', src: 'media/clips/wonbin1.mp4', next: 'p_wonbin3' },
-    // 영상 뒤 다시 문자: 내가 보낸 답장 2개는 이미 있음 → 원빈 문자 → 내 메시지 자동 전송
+    // 영상 뒤 다시 문자: 내가 보낸 답장 2개는 이미 있음 → 원빈 문자 → 선택지 '일단 평소처럼 통화해' 누르면 전송
     p_wonbin3: {
       type: 'chat', thread: 'wonbin', title: '원빈', icon: '원',
       pre: 2,
@@ -792,10 +792,8 @@ window.STORY = {
         ['me', '일단 받아'],
         ['me', '들키지 말고ㅋㅋㅋ'],
         ['원빈', '아니 이 형 뭐 알고 전화한거 아니야?'],
-        ['me', '일단 평소처럼 통화해'],
       ],
-      auto: 1000,
-      next: 'c_wonbin2',
+      choice: { options: [{ text: '일단 평소처럼 통화해', next: 'c_wonbin2' }] },   // 전송 → 긴급상황 영상
     },
     // 건너뛰기 불가. 재생 중 원빈 문자가 위에 알림으로 → 19초 뒤 긴급상황: 7초 안에 알림 눌러 'ㄴㄴ 끊지마' 전송
     c_wonbin2: {
