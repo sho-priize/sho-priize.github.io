@@ -152,7 +152,7 @@
 /* ---------- 잠금화면 + 알림 ---------- */
 .v-lock {
   position: absolute; inset: 0; overflow: hidden; color: #fff; cursor: pointer;
-  background: #0a0b14 url(../media/images/wallpaper.jpg) center / cover no-repeat;   /* 잠금화면 배경화면 (비율 유지, 화면 꽉 채움) */
+  background: #2e2e2e url(../media/images/lock_bg.jpg) center / cover no-repeat;   /* 잠금화면 배경: assets/blur (이미지 뜨기 전에도 비슷한 색이라 까맣게 안 보임) */
 }
 .l-top { position: absolute; top: calc(var(--safe-t) + 14px); left: 0; right: 0; text-align: center; }
 .l-lock svg { width: 18px; height: 18px; opacity: .9; }

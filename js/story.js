@@ -74,7 +74,7 @@ window.STORY = {
     flags: {},                  // 초기 플래그
     phone: {
       clock: null,              // 폰 상단 시계. null이면 현재 시각, 예: '23:42'
-      date: null,               // 잠금화면 날짜. null이면 오늘, 예: '10월 1일 수요일'
+      date: '11월 25일 수요일',   // 잠금화면 날짜 고정 (시간은 현재 시각)
       selfImage: 'media/images/self.jpg',   // 영상통화 내 화면(PIP) — 흐리게 표시
     },
     sounds: {                   // 비워두면 기본 합성음 사용. 예: ring: 'assets/sfx/ring.mp3'

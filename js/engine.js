@@ -538,12 +538,13 @@
     if (opts.atChoice && ch && !atEnd) P.seek(showAt);
     if (opts.atChoice && sc.urgent) P.seek(Math.max(0, sc.urgent.at - 4));   // 루트에서 바로: 긴급상황 조금 전부터
 
-    let holdT = null;
+    let holdT = null, looped = false;
     const frame = () => {
       raf = requestAnimationFrame(frame);
       P.tick();
       const t = P.time();
-      if (mode === 'play' || (mode === 'choice' && !ch.prompt)) {
+      if (looped && mode === 'choice') subOut('');   // 처음부터 반복될 때는 설명 자막 없이 (선택지 위 문구만)
+      else if (mode === 'play' || (mode === 'choice' && !ch.prompt)) {
         const e = currentSub(sc.subs, t);
         const all = (sc.subs || []).filter((x) => t >= x[0] && t < x[1]);
         // 대사가 없는 동안엔 idleSub(예: '멤버들의 말을 들어보자...')를 계속 띄움
@@ -571,7 +572,7 @@
         }
       } else if (mode === 'choice' && !atEnd) {
         const a = ch.loop?.[0] ?? 0, b = ch.loop?.[1] ?? P.end();
-        if (t >= b - 0.06 || P.ended()) P.seek(a);
+        if (t >= b - 0.06 || P.ended()) { P.seek(a); looped = true; }
       }
       onTick?.(t);
     };
@@ -2548,7 +2549,7 @@
   // 폰트가 준비된 뒤 첫 화면 표시 (기본 글꼴로 잠깐 보이는 것 방지)
   Preload.add(CFG.titleMedia); Preload.add(CFG.phone?.selfImage);
   ['media/images/end_good.png', 'media/images/end_bad.png', 'media/images/voicephoto.jpg'].forEach(Preload.add);
-  Object.values(SC).forEach((x) => x.polaroid && Preload.add(x.polaroid)); Preload.add('media/images/alone/pola_blur.jpg'); Preload.add('media/images/wallpaper.jpg');   // 엔딩 그림은 처음에 받아둠
+  Object.values(SC).forEach((x) => x.polaroid && Preload.add(x.polaroid)); Preload.add('media/images/alone/pola_blur.jpg'); Preload.add('media/images/lock_bg.jpg');   // 엔딩 그림은 처음에 받아둠
   Promise.race([document.fonts?.ready, wait(2500)]).then(() => {
     fromHash(true);
     if (!gate) requestAnimationFrame(() => fade.classList.remove('on'));
