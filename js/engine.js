@@ -1196,7 +1196,7 @@
             <div class="m-title">${esc(title)}<i>›</i></div>
             <span class="facetime">${ICON.vidFill}</span>
           </div>
-          <div class="m-body"><div class="m-ts"><b>iMessage</b>${esc(sc.time || '오늘')}</div></div>
+          <div class="m-scroll"><div class="m-body"><div class="m-ts"><b>iMessage</b>${esc(sc.time || '오늘')}</div></div></div>
           <div class="m-input">
             <span class="plus">${ICON.plus}</span>
             <div class="field"><span class="ph">iMessage</span><span class="typed"></span><i class="mic">${ICON.waveform}</i><b class="send">${ICON.up}</b></div>
@@ -1211,12 +1211,11 @@
         const list = e.scene ? SC[e.scene].msgs || [] : [e];
         for (const [who, text] of list) { body.append(bubble(who, text, prev)); prev = who; }
       }
-      // 위로 스크롤해서 지난 메시지 볼 수 있게, 새 내용이 생기면 항상 맨 아래로
-      const stick = () => { body.scrollTop = body.scrollHeight; };
-      new MutationObserver(stick).observe(body, { childList: true });
-      body.addEventListener('load', stick, true);   // 사진·영상 썸네일이 늦게 뜨면서 높이가 늘어도 맨 아래 유지
-      if (window.ResizeObserver) new ResizeObserver(stick).observe(body);
-      requestAnimationFrame(stick);
+      // 위로 스크롤해서 지난 메시지 볼 수 있게. 바깥 .m-scroll 이 아래 기준(column-reverse)이라
+      // 새 메시지·사진·선택지 시트가 생겨도 스크립트로 스크롤하지 않고 맨 아래가 유지됨
+      // (X 앱: 스크롤이 위로 움직이면 하단 게시글 모듈이 다시 올라옴 → 위로 움직이는 스크롤을 만들지 않음)
+      const scroller = body.parentElement;
+      new MutationObserver(() => { if (scroller.scrollTop < -2) scroller.scrollTop = 0; }).observe(body, { childList: true });   // 사용자가 위로 올려 보던 중이면 새 메시지 때 맨 아래로 (아래로만 이동)
       hist.push({ scene: id });
       if (sc.dateLabel) { body.append(dateRow(sc.dateLabel === 'now' ? nowLabel() : sc.dateLabel)); prev = null; }
       run(body, prev);

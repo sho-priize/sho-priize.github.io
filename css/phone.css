@@ -201,13 +201,18 @@
 .m-av { width: 50px; height: 50px; font-size: 21px; }
 .m-title { display: flex; align-items: center; gap: 3px; font: 400 12px/1 -apple-system, var(--sans); color: #fff; }
 .m-title i { font-style: normal; color: rgba(255,255,255,.4); font-size: 13px; }
-.m-body {
+.m-scroll {
   position: absolute; top: calc(var(--safe-t) + 92px); bottom: max(calc(var(--safe-b) + 60px), var(--sheet, 0px));
-  left: 0; right: 0; padding: 0 12px 8px;
-  display: flex; flex-direction: column; gap: 2px;
+  left: 0; right: 0;
+  display: flex; flex-direction: column-reverse;   /* 아래 기준: 내용이 늘거나 칸이 줄어도 맨 아래가 그대로 보임 */
   overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y;
   scrollbar-width: none;
   transition: bottom .35s cubic-bezier(.2,.8,.2,1);
+}
+.m-scroll::-webkit-scrollbar { display: none; }
+.m-body {
+  flex: none; padding: 0 12px 8px;
+  display: flex; flex-direction: column; gap: 2px;
 }
 .m-ts { align-self: center; display: flex; flex-direction: column; align-items: center; gap: 2px; margin-bottom: 10px; font: 400 11px/1.2 -apple-system, var(--sans); color: rgba(255,255,255,.45); }
 .m-ts b { font-weight: 600; }
@@ -336,8 +341,6 @@
 
 .m-ts.m-date { margin: 14px 0 8px; font-weight: 600; }
 
-.m-body::-webkit-scrollbar { display: none; }
-.m-body > :first-child { margin-top: auto; }   /* 메시지가 적으면 아래쪽부터 쌓임 */
 
 /* 음성 메시지 말풍선 */
 .bub.vm span { display: flex; align-items: center; gap: 10px; padding: 9px 14px 9px 9px; min-width: 52cqw; }
