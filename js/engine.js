@@ -2362,7 +2362,7 @@
     const m = document.createElement('div');
     m.className = 'lang-modal';
     m.innerHTML = `<div class="lm-box" role="dialog" aria-label="Language">
-        <p class="lm-note">AI 번역으로 이뤄져 있어 어색할 수 있는 점 참고하며 플레이 부탁드립니다.</p>
+        <p class="lm-head">🌐 Language</p>
         ${['en', 'ja', 'zh'].map((l) => `<button class="lm-opt ${LANG === l ? 'on' : ''}" data-l="${l}"><b>${LANG_NAMES[l]}</b><small>${NOTE[l]}</small></button>`).join('')}
         <button class="lm-opt lm-ko ${LANG === 'ko' ? 'on' : ''}" data-l="ko"><b>한국어</b></button>
         <button class="lm-x" aria-label="close">✕</button>
