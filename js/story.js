@@ -797,7 +797,7 @@ window.STORY = {
       ],
       choice: { options: [{ text: '일단 평소처럼 통화해', next: 'c_wonbin2' }] },   // 전송 → 긴급상황 영상
     },
-    // 건너뛰기 불가. 재생 중 원빈 문자가 위에 알림으로 → 19초 뒤 긴급상황: 7초 안에 알림 눌러 'ㄴㄴ 끊지마' 전송
+    // 건너뛰기 불가. 재생 중 원빈 문자가 위에 알림으로 → 19초 뒤 긴급상황: 6초 안에 알림 눌러 'ㄴㄴ 끊지마' 전송
     c_wonbin2: {
       type: 'clip', src: 'media/clips/wonbin2.mp4',
       noSkip: true,
@@ -818,7 +818,7 @@ window.STORY = {
         at: 20.1,   // 마지막 문자(19.5초) 0.6초 뒤 — 영상 길이 20.47초
         text: '원빈이에게 끊지 말라고 답장해주세요!',
         placeholder: 'ㄴㄴ 끊지마', answer: 'ㄴㄴ 끊지마',   // 띄어쓰기는 상관없음
-        time: 7,   // 긴급상황 뜬 뒤 알림 누르고 입력·전송까지 7초
+        time: 6,   // 긴급상황 뜬 뒤 알림 누르고 입력·전송까지 6초
         replies: ['알겠어', '해결하고 연락할게'], repliesDelay: 1.5,   // 보낸 뒤 원빈 답장 → 내러티브
         success: 'n_wonbin_ok', fail: 'c_wonbin3',
       },
