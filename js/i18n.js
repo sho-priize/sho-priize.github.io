@@ -468,6 +468,8 @@
   };
   for (const sc of Object.values(window.STORY.scenes)) for (const o of sc.choice?.options || []) if (SHORT[o.text]) o.routeText = SHORT[o.text][IDX];
   walk(window.STORY.scenes);
+  // 일본어·중국어는 키보드에서 글자 변환이 필요해서 긴급 답장 시간을 넉넉하게
+  if (LANG === 'ja' || LANG === 'zh') for (const sc of Object.values(window.STORY.scenes)) if (sc.urgent) sc.urgent.time = 12;
   const C = window.STORY.config;
   ['tagline'].forEach((k) => { if (D[C[k]]) C[k] = D[C[k]][IDX]; });
   if (C.routeStart && D[C.routeStart.title]) C.routeStart.title = D[C.routeStart.title][IDX];
