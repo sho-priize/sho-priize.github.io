@@ -1859,7 +1859,8 @@
       else fx.innerHTML = Array.from({ length: 14 }, (_, k) => {
         // 😢 는 글자를 가리지 않게 양옆으로, 작은 💧 는 어디든
         const face = k % 2 === 0;
-        const x = face ? (Math.random() < .5 ? Math.random() * 16 : 80 + Math.random() * 16) : Math.random() * 96;
+        // 양옆 번갈아 (무작위로 고르면 한쪽에 몰릴 때가 있음)
+        const x = face ? ((k / 2) % 2 === 0 ? Math.random() * 16 : 80 + Math.random() * 16) : Math.random() * 96;
         return `<i class="${face ? '' : 'drop'}" style="left:${x.toFixed(1)}%;--d:${(3.4 + Math.random() * 2.6).toFixed(2)}s;--w:${(-Math.random() * 6).toFixed(2)}s;--s:${(0.8 + Math.random() * .5).toFixed(2)}">${face ? '😢' : '💧'}</i>`;
       }).join('');
 
