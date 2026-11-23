@@ -839,8 +839,8 @@ window.STORY = {
       bg: ['#2a2a3a', '#06060c'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
-        src: 'media/voices/bad_wonbin.m4a',   // voice_bad_wonbin 영상에서 소리만
-        subs: [[0, 99, '왜 안 나올까? 뭐하고 있을까?']],
+        src: 'media/voices/bad_wonbin1.m4a',   // voice_bad_wonbin1 영상에서 소리만
+        subs: [[0, 99, '하면 돼~']],
       },
     },
 
