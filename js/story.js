@@ -216,6 +216,7 @@ window.STORY = {
       type: 'dial',
       to: '쇼타로',
       prompt: '쇼타로에게 전화해보자.',
+      noHint: true,   // 겹치지 않게 '전화를 걸어요' 안내는 생략
       recents: RECENTS,
       subs: [
         [1, 3, '그나저나 뭐라고 불러낼지 생각을 안 했는데....'],
