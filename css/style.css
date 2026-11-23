@@ -756,3 +756,19 @@ html:not(.dev) #ph .ph-label { display: none; }
 /* 제작자 크레딧: 메인 · 스토리 루트 · 엔딩 화면 오른쪽 위 */
 .credit { position: absolute; z-index: 9; right: 16px; top: calc(16px + var(--safe-t)); font: 600 10.5px/1 var(--mono); letter-spacing: .05em; color: rgba(255,255,255,.4); pointer-events: none; white-space: nowrap; }
 #route .credit { top: calc(11px + var(--safe-t)); right: 20px; }   /* 엔딩/선택지 숫자 위로 살짝 띄움 */
+
+/* 언어 선택 (메인 화면 작은 밑줄 글씨 → 팝업) */
+#title .t-langlink { align-self: center; margin-bottom: 2px; padding: 4px 8px; background: none; border: 0; font: 500 12px/1.2 var(--sans); color: rgba(255,255,255,.55); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.lang-modal { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; padding: 24px; background: rgba(0,0,0,.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); animation: fadeIn .2s ease both; }
+.lang-modal .lm-box { position: relative; width: min(100%, 340px); padding: 22px 16px 16px; border-radius: 20px; background: #17120f; border: 1px solid rgba(255,255,255,.1); box-shadow: 0 20px 60px rgba(0,0,0,.6); display: flex; flex-direction: column; gap: 8px; }
+.lang-modal .lm-note { margin: 0 26px 8px 4px; font: 500 12.5px/1.55 var(--sans); color: rgba(255,255,255,.62); word-break: keep-all; }
+.lang-modal .lm-opt { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); color: #fff; text-align: left; cursor: pointer; }
+.lang-modal .lm-opt b { font: 700 15px/1.2 var(--sans); }
+.lang-modal .lm-opt small { font: 500 11px/1.4 var(--sans); color: rgba(255,255,255,.45); }
+.lang-modal .lm-opt.on { border-color: var(--accent); background: rgba(var(--accent-rgb), .12); }
+.lang-modal .lm-ko { align-items: center; padding: 9px; background: none; border-color: transparent; }
+.lang-modal .lm-ko b { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.6); }
+.lang-modal .lm-ko.on b { color: var(--accent); }
+.lang-modal .lm-x { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,.08); border: 0; color: rgba(255,255,255,.7); font-size: 13px; cursor: pointer; }
+/* 일본어·중국어: keep-all 이면 줄바꿈이 안 돼서 화면 밖으로 넘침 */
+html[data-lang="ja"] body *, html[data-lang="zh"] body * { word-break: normal !important; line-break: strict; }

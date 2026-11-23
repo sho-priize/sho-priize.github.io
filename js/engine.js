@@ -538,7 +538,7 @@
     Route.snap(id, state.checkpoint);
     const el = document.createElement('div');
     el.className = 'mash';
-    el.innerHTML = `<button class="mash-btn"><b>${esc(m.text || '빠르게 연타하세요!')}</b><span class="mash-n">0 / ${need}</span></button><i class="mash-bar"><s></s></i>`;
+    el.innerHTML = `<button class="mash-btn"><b>${esc(m.text || tr('빠르게 연타하세요!'))}</b><span class="mash-n">0 / ${need}</span></button><i class="mash-bar"><s></s></i>`;
     stage.append(el);
     noZoom(el);
     const btn = $('.mash-btn', el), nEl = $('.mash-n', el), bar = $('.mash-bar s', el);
@@ -625,7 +625,7 @@
      urgent: { at, text, placeholder, answer, time, success, fail } → at초에 화면 dim + 알림 강조, time초 안에 알림 눌러 answer 를 쳐서 보내야 성공 */
   function clipTexts(id, sc, P, opts) {
     const my = token, T = sc.texts || { list: [] }, U = sc.urgent;
-    const from = T.from || '메시지', initial = [...from][0];
+    const from = T.from || tr('메시지'), initial = [...from][0];
     const hist = T.thread ? (state.threads[T.thread] ||= []) : null;
     const wrap = document.createElement('div');
     wrap.className = 'cnoti';
@@ -637,7 +637,7 @@
       [...wrap.querySelectorAll('.cn.old')].slice(0, -1).forEach((b) => b.remove());
       const b = document.createElement('div');
       b.className = 'cn';
-      b.innerHTML = `<div class="b-icon">${ICON.bubble}</div><div class="b-body"><div class="b-row"><b>${esc(from)}</b><span>지금</span></div><p></p></div>`;
+      b.innerHTML = `<div class="b-icon">${ICON.bubble}</div><div class="b-body"><div class="b-row"><b>${esc(from)}</b><span>${tr('지금')}</span></div><p></p></div>`;
       $('p', b).textContent = text;
       wrap.append(b);
       requestAnimationFrame(() => b.classList.add('in'));
@@ -659,7 +659,7 @@
       const list = hist ? hist.flatMap((e) => (e.scene ? SC[e.scene].msgs || [] : [e])) : recv.map((x) => [from, x]);
       return list.map(([who, m]) => {
         const body = typeof m === 'string' ? esc(m)
-          : m.img ? `<img src="${m.img}" alt="">` : m.thumb ? `<img src="${m.thumb}" alt="">` : m.voice ? '🎤 음성 메시지' : '';
+          : m.img ? `<img src="${m.img}" alt="">` : m.thumb ? `<img src="${m.thumb}" alt="">` : m.voice ? tr('🎤 음성 메시지') : '';
         return `<div class="ur-b ${who === 'me' ? 'me' : 'them'}"><span>${body}</span></div>`;
       }).join('');
     }
@@ -673,8 +673,8 @@
       stage.classList.add('urgent');
       const ov = document.createElement('div');
       ov.className = 'ur-ov';
-      ov.innerHTML = `<div class="ur-box"><span class="ur-tag">🚨 긴급상황</span><p>${esc(U.text || '답장해주세요!')}</p>
-        <div class="ur-bar"><s></s></div><small>알림을 눌러서 답장!</small></div>`;
+      ov.innerHTML = `<div class="ur-box"><span class="ur-tag">${tr('🚨 긴급상황')}</span><p>${esc(U.text || tr('답장해주세요!'))}</p>
+        <div class="ur-bar"><s></s></div><small>${tr('알림을 눌러서 답장!')}</small></div>`;
       wrap.append(ov);
       const last = wrap.querySelector('.cn:not(.old)');
       last?.classList.add('hot');
@@ -687,8 +687,8 @@
         <div class="ur-head"><span class="back">${ICON.chev}</span><div class="m-av">${esc(initial)}</div><b>${esc(from)}</b></div>
         <div class="ur-body"><div class="ur-in">${urHistory()}</div></div>
         <form class="ur-input"><span class="plus">${ICON.plus}</span>
-          <label class="field"><span class="ur-ghost"></span><input type="text" lang="ko" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send">
-          <button type="submit" class="send" aria-label="보내기">${ICON.up}</button></label></form>`;
+          <label class="field"><span class="ur-ghost"></span><input type="text" lang="${LANG}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send">
+          <button type="submit" class="send" aria-label="${tr('보내기')}">${ICON.up}</button></label></form>`;
       document.body.append(sheet);
       bottomScroller($('.ur-body', sheet), $('.ur-in', sheet));
       input = $('input', sheet);
@@ -725,7 +725,7 @@
       input.addEventListener('compositionend', () => { composing = false; paint(); });
       input.addEventListener('input', paint);
       paint();
-      const norm = (x) => x.replace(/\s+/g, '');
+      const norm = (x) => x.replace(/\s+/g, '').toLowerCase();
       $('form', sheet).addEventListener('submit', (e) => {
         e.preventDefault();
         if (done) return;
@@ -937,7 +937,7 @@
 
   /* ---------- 영상통화 (폰 목업) ---------- */
   function showCall(id, sc, opts) {
-    const name = sc.from || '알 수 없음';
+    const name = sc.from || tr('알 수 없음');
     const initial = sc.initial || [...name][0];
     const [c1, c2] = sc.bg || ['#3b5a7a', '#0b1018'];
     const avatar = sc.avatar ? `<img src="${sc.avatar}" alt="">` : `<span>${esc(initial)}</span>`;
@@ -948,21 +948,21 @@
     let ringing = false;
     const ring = () => {
       ringing = true;
-      side('INCOMING · VIDEO CALL', name, '<i class="dot"></i>수신 중');
+      side('INCOMING · VIDEO CALL', name, '<i class="dot"></i>' + tr('수신 중'));
       pscreen.innerHTML = `
         <div class="v-ring" style="--c1:${c1};--c2:${c2}">
           <div class="r-head">
-            <div class="r-kind">${ICON.vidFill}FaceTime 비디오…</div>
+            <div class="r-kind">${ICON.vidFill}${tr('FaceTime 비디오…')}</div>
             <div class="r-name">${esc(name)}</div>
           </div>
           ${CFG.phone?.selfImage ? `<div class="r-self" style="background-image:url('${CFG.phone.selfImage}')"></div>` : ''}
           <div class="r-extra">
-            <button class="rx later"><b>${ICON.clock}</b><span>나중에 알림</span></button>
-            <button class="rx msg"><b>${ICON.bubble}</b><span>메시지</span></button>
+            <button class="rx later"><b>${ICON.clock}</b><span>${tr('나중에 알림')}</span></button>
+            <button class="rx msg"><b>${ICON.bubble}</b><span>${tr('메시지')}</span></button>
           </div>
           <div class="r-btns">
-            <button class="rb decline"><b>${ICON.phone}</b><span>거절</span></button>
-            <button class="rb accept"><b>${ICON.vidFill}</b><span>${sc.acceptLabel || '수락'}</span></button>
+            <button class="rb decline"><b>${ICON.phone}</b><span>${tr('거절')}</span></button>
+            <button class="rb accept"><b>${ICON.vidFill}</b><span>${sc.acceptLabel || tr('수락')}</span></button>
           </div>
         </div>`;
       phone.classList.add('ringing');
@@ -976,7 +976,7 @@
     const decline = () => {
       if (sc.decline) { stopRing(); go(resolve(sc.decline)); return; }
       defaultSub(''); void sub.offsetWidth;   // 다시 눌러도 등장 효과가 다시 보이게
-      defaultSub(sc.declineText || '지금은 받아야 할 것 같다…', 'think');
+      defaultSub(sc.declineText || tr('지금은 받아야 할 것 같다…'), 'think');
       clearTimeout(declineTimer);
       declineTimer = setTimeout(() => defaultSub(''), 2400);
     };
@@ -989,7 +989,7 @@
       clearCtas();
       if (sc.answer) {
         // 받기 → 폰이 화면 가득 확대되며 전체화면 클립으로
-        side('VIDEO CALL', name, '<i class="dot on"></i>연결됨');
+        side('VIDEO CALL', name, '<i class="dot on"></i>' + tr('연결됨'));
         phone.classList.remove('enter'); phone.classList.add('zoom');
         later(() => go(resolve(sc.answer)), 650);
         return;
@@ -1004,7 +1004,7 @@
           <div class="panel">
             <div class="c-top">
               <div class="c-av">${avatar}</div>
-              <div class="c-who"><b>${esc(name)}</b><span class="c-time"><i></i><span>연결 중…</span></span></div>
+              <div class="c-who"><b>${esc(name)}</b><span class="c-time"><i></i><span>${tr('연결 중…')}</span></span></div>
             </div>
             <div class="c-btns">
               <button class="pi">${ICON.speaker}</button>
@@ -1017,7 +1017,7 @@
           <div class="pip">${CFG.phone?.selfImage ? `<img src="${CFG.phone.selfImage}" alt="">` : ICON.user}</div>
           <div class="caption"><span></span></div>
         </div>`;
-      side('VIDEO CALL', name, '<i class="dot"></i>연결 중');
+      side('VIDEO CALL', name, '<i class="dot"></i>' + tr('연결 중'));
       $('.media', pscreen).append(video, ph);
       // 뒤 배경: 영상 한 장면만 떠서 흐리게 깔아둠 (계속 바뀌지 않게 → 울렁거림 없음)
       const bg = $('.media-bg', pscreen);
@@ -1068,7 +1068,7 @@
       clearInterval(clockTimer);
       const dur = mmss(Math.floor((performance.now() - started) / 1000));
       subOut('');
-      $('.v-call', pscreen).insertAdjacentHTML('beforeend', `<div class="ended"><div class="c-av">${avatar}</div><b>${esc(name)}</b><span>FaceTime 종료됨 · ${dur}</span></div>`);
+      $('.v-call', pscreen).insertAdjacentHTML('beforeend', `<div class="ended"><div class="c-av">${avatar}</div><b>${esc(name)}</b><span>${tr('FaceTime 종료됨')} · ${dur}</span></div>`);
       side('CALL ENDED', name, `<i class="dot red on"></i>${dur}`);
       Sound.hangup();
       if (sc.endLine) later(() => defaultSub(sc.endLine, 'think'), 500);
@@ -1090,7 +1090,7 @@
     const seen = hist.findIndex((e) => e.scene === id);
     if (seen >= 0 && !opts.cont) hist.length = seen;
 
-    const title = sc.title || sc.from || '메시지';
+    const title = sc.title || sc.from || tr('메시지');
     const instant = !!opts.atChoice;
     const timers = [];
     let alive = true, tapNext = null;
@@ -1104,7 +1104,7 @@
       if (text && typeof text === 'object' && 'voice' in text) {   // 음성 메시지
         el.classList.add('vm');
         const bars = Array.from({ length: 26 }, (_, k) => `<i style="--h:${(.25 + .75 * Math.abs(Math.sin(k * 1.7) * Math.cos(k * .55 + 1))).toFixed(2)}"></i>`).join('');
-        el.innerHTML = `${showName ? `<small>${esc(who)}</small>` : ''}<span><button class="vm-play" aria-label="재생"><i></i></button><b class="vm-wave">${bars}</b><em class="vm-dur">0:${pad2(Math.round(text.dur || 0))}</em></span>`;
+        el.innerHTML = `${showName ? `<small>${esc(who)}</small>` : ''}<span><button class="vm-play" aria-label="${tr('재생')}"><i></i></button><b class="vm-wave">${bars}</b><em class="vm-dur">0:${pad2(Math.round(text.dur || 0))}</em></span>`;
         return el;
       }
       if (text && typeof text === 'object' && text.video) {   // 영상 메시지 (누르면 재생)
@@ -1134,7 +1134,7 @@
       clearCtas();
       const ov = document.createElement('div');
       ov.className = 'vviewer';
-      ov.innerHTML = `<video playsinline webkit-playsinline src="${b.dataset.video}"></video><button class="vv-x" aria-label="닫기">✕</button>`;
+      ov.innerHTML = `<video playsinline webkit-playsinline src="${b.dataset.video}"></video><button class="vv-x" aria-label="${tr('닫기')}">✕</button>`;
       pscreen.append(ov); stage.classList.add('viewing');   // 보는 동안 안내·선택지 가림
       const v = $('video', ov);
       v.muted = muted;
@@ -1144,7 +1144,7 @@
         if (closed) return; closed = true;
         v.pause(); ov.classList.add('out'); setTimeout(() => ov.remove(), 250); stage.classList.remove('viewing');
         b.classList.add('viewed'); b._viewed?.(); checkVids();
-        hintLater('영상을 눌러서 확인하세요', 900, needVids);
+        hintLater(tr('영상을 눌러서 확인하세요'), 900, needVids);
       };
       v.addEventListener('ended', () => (b.dataset.hold ? setTimeout(close, +b.dataset.hold * 1000) : close()));   // hold: 마지막 장면 n초 유지
       ov.addEventListener('click', (e) => { e.stopPropagation(); close(); });
@@ -1154,7 +1154,7 @@
       const src = $('img', b)?.getAttribute('src'); if (!src) return;
       const ov = document.createElement('div');
       ov.className = 'vviewer photo';
-      ov.innerHTML = `<img src="${src}" alt=""><button class="vv-x" aria-label="닫기">✕</button>`;
+      ov.innerHTML = `<img src="${src}" alt=""><button class="vv-x" aria-label="${tr('닫기')}">✕</button>`;
       pscreen.append(ov); stage.classList.add('viewing');   // 크게 보는 동안 선택지 가림
       ov.addEventListener('click', (e) => { e.stopPropagation(); stage.classList.remove('viewing'); ov.classList.add('out'); setTimeout(() => ov.remove(), 250); });
     };
@@ -1171,7 +1171,7 @@
     const listenVoice = (el, m) => new Promise((done) => {
       const btn = $('.vm-play', el);
       el.classList.add('wait');
-      hintLater('▶ 눌러서 듣기', 3000, () => el.classList.contains('wait'));   // 도착하고 3초 뒤에 안내 (이미 눌렀으면 안 띄움)
+      hintLater(tr('▶ 눌러서 듣기'), 3000, () => el.classList.contains('wait'));   // 도착하고 3초 뒤에 안내 (이미 눌렀으면 안 띄움)
       btn.addEventListener('click', (ev) => {
         ev.stopPropagation();
         el.classList.remove('wait'); el.classList.add('playing'); clearCtas();
@@ -1220,7 +1220,7 @@
       typed.textContent = ''; phEl.hidden = false; bar.classList.remove('active');
       body.append(bubble('me', text, prev, true));
       body.querySelectorAll('.m-recv').forEach((r) => r.remove());
-      body.insertAdjacentHTML('beforeend', '<div class="m-recv">전송됨</div>');
+      body.insertAdjacentHTML('beforeend', `<div class="m-recv">${tr('전송됨')}</div>`);
       Sound.send();
       return true;
     };
@@ -1237,7 +1237,7 @@
             <div class="m-title">${esc(title)}<i>›</i></div>
             <span class="facetime">${ICON.vidFill}</span>
           </div>
-          <div class="m-scroll"><div class="m-body"><div class="m-ts"><b>iMessage</b>${esc(sc.time || '오늘')}</div></div></div>
+          <div class="m-scroll"><div class="m-body"><div class="m-ts"><b>iMessage</b>${esc(sc.time || tr('오늘'))}</div></div></div>
           <div class="m-input">
             <span class="plus">${ICON.plus}</span>
             <div class="field"><span class="ph">iMessage</span><span class="typed"></span><i class="mic">${ICON.waveform}</i><b class="send">${ICON.up}</b></div>
@@ -1285,7 +1285,7 @@
           Sound.pop();   // 대화방 안에서는 짧은 합성음 (receive 파일은 알림 때만)
           if (text && typeof text === 'object' && 'voice' in text) { await pause(400); if (!(await listenVoice(bEl, text))) return; }
           if (text && typeof text === 'object' && text.video && text.wait) {   // 이 영상을 봐야 다음 문자 ('all': 이 장면 영상 전부)
-            hintLater('영상을 눌러서 확인하세요', 600, () => (text.wait === 'all' ? needVids() : !bEl.classList.contains('viewed')));
+            hintLater(tr('영상을 눌러서 확인하세요'), 600, () => (text.wait === 'all' ? needVids() : !bEl.classList.contains('viewed')));
             if (text.wait === 'all') await new Promise((ok) => { vidsDone = ok; checkVids(); });
             else await new Promise((ok) => { bEl._viewed = ok; });
             if (!alive) return;
@@ -1300,7 +1300,7 @@
       // 영상 메시지가 있으면 전부 눌러서 본 뒤에 선택지
       const vids = [...body.querySelectorAll('.bub.vid')].filter((b) => b.dataset.scene === id);
       if (vids.some((b) => !b.classList.contains('viewed'))) {
-        hintLater('영상을 눌러서 확인하세요', 600, needVids);
+        hintLater(tr('영상을 눌러서 확인하세요'), 600, needVids);
         await new Promise((ok) => { vidsDone = ok; checkVids(); });
         if (!alive) return;
         await pause(500);
@@ -1328,7 +1328,7 @@
         tapNext = () => go(resolve(sc.next));
         if (sc.auto) timers.push(setTimeout(tapNext, sc.auto));
         else {
-          hintLater('TAP ▸ 계속', 0);
+          hintLater(tr('TAP ▸ 계속'), 0);
           pstage.addEventListener('click', tapNext, { once: true });
         }
       }
@@ -1340,9 +1340,9 @@
       const banner = `
         <div class="banner${n.overlay ? ' top' : ''}">
           <div class="b-icon">${ICON.bubble}</div>
-          <div class="b-body"><div class="b-row"><b>${esc(n.from || title)}</b><span>지금</span></div>${preview ? `<p>${esc(preview)}</p>` : ''}</div>
+          <div class="b-body"><div class="b-row"><b>${esc(n.from || title)}</b><span>${tr('지금')}</span></div>${preview ? `<p>${esc(preview)}</p>` : ''}</div>
         </div>`;
-      side('NEW MESSAGE', n.from || title, '<i class="dot"></i>지금');
+      side('NEW MESSAGE', n.from || title, '<i class="dot"></i>' + tr('지금'));
       if (n.overlay && opts.keepScreen && pscreen.firstElementChild) {
         pscreen.insertAdjacentHTML('beforeend', banner);   // 지금 화면 위로 배너만
       } else {
@@ -1358,7 +1358,7 @@
         if (!alive) return;
         $('.banner', pscreen).classList.add('in');
         Sound.ding(); vibrate([200, 100, 200]);
-        hintLater('알림을 탭하세요', 1200, () => !!pscreen.onclick);
+        hintLater(tr('알림을 탭하세요'), 1200, () => !!pscreen.onclick);
       }, sc.notifyDelay ?? (n.overlay ? 300 : 900)));
       pscreen.onclick = () => {
         if (!$('.banner.in', pscreen)) return;
@@ -1407,7 +1407,7 @@
     const timers = [];
     let alive = true, stopTone = () => {};
     const later = (fn, ms) => timers.push(setTimeout(() => alive && fn(), ms));
-    const target = sc.to || '쇼타로';
+    const target = sc.to || tr('쇼타로');
     const recents = sc.recents || [];
     const say = (t) => { defaultSub(''); void sub.offsetWidth; defaultSub(t, 'think'); };
 
@@ -1415,28 +1415,28 @@
       stage.classList.remove('dial-calling');
       pscreen.innerHTML = `
         <div class="v-recents">
-          <div class="rc-top"><span class="rc-edit">편집</span></div>
-          <h1>최근 기록</h1>
-          <div class="rc-seg"><b>모두</b><span>부재중</span></div>
+          <div class="rc-top"><span class="rc-edit">${tr('편집')}</span></div>
+          <h1>${tr('최근 기록')}</h1>
+          <div class="rc-seg"><b>${tr('모두')}</b><span>${tr('부재중')}</span></div>
           <ul class="rc-list">
             ${recents.map((r, k) => `
               <li class="rc-row${r.missed ? ' missed' : ''}" data-k="${k}">
                 <span class="rc-av">${esc(r.initial || [...r.name][0])}</span>
-                <span class="rc-main"><b>${esc(r.name)}${r.count ? ` (${r.count})` : ''}</b><small>${r.video ? '<i class="rc-vid">' + ICON.vidFill + '</i>FaceTime 비디오' : '휴대전화'}</small></span>
+                <span class="rc-main"><b>${esc(r.name)}${r.count ? ` (${r.count})` : ''}</b><small>${r.video ? '<i class="rc-vid">' + ICON.vidFill + '</i>' + tr('FaceTime 비디오') : tr('휴대전화')}</small></span>
                 <span class="rc-time">${esc(r.time || '')}</span>
                 <span class="rc-info">i</span>
               </li>`).join('')}
           </ul>
           <nav class="rc-tabs">
-            <span><i>★</i>즐겨찾기</span><span class="on"><i>${ICON.clock}</i>최근 기록</span><span><i>${ICON.user}</i>연락처</span><span><i>⠿</i>키패드</span><span><i>${ICON.waveform}</i>음성 사서함</span>
+            <span><i>★</i>${tr('즐겨찾기')}</span><span class="on"><i>${ICON.clock}</i>${tr('최근 기록')}</span><span><i>${ICON.user}</i>${tr('연락처')}</span><span><i>⠿</i>${tr('키패드')}</span><span><i>${ICON.waveform}</i>${tr('음성 사서함')}</span>
           </nav>
         </div>`;
       if (sc.prompt) later(() => say(sc.prompt), 500);
-      if (!sc.noHint) hintLater(`${target}에게 전화를 걸어요`, 2600);
+      if (!sc.noHint) hintLater(tr('{0}에게 전화를 걸어요', target), 2600);
       pscreen.querySelectorAll('.rc-row').forEach((row) => {
         row.onclick = () => {
           const r = recents[+row.dataset.k];
-          if (r.name !== target) { say(sc.wrongText || `지금은 ${target}에게 걸어야 해.`); return; }
+          if (r.name !== target) { say(sc.wrongText || tr('지금은 {0}에게 걸어야 해.', target)); return; }
           clearCtas();
           row.classList.add('tapped');
           later(() => calling(r), 180);
@@ -1449,10 +1449,10 @@
       stage.classList.add('dial-calling');
       pscreen.innerHTML = `
         <div class="v-dial">
-          <div class="d-head"><small>휴대전화</small><b>${esc(r.name)}</b><span class="d-status">전화 거는 중…</span></div>
+          <div class="d-head"><small>${tr('휴대전화')}</small><b>${esc(r.name)}</b><span class="d-status">${tr('전화 거는 중…')}</span></div>
           <div class="d-grid">
-            <span><b>${ICON.speaker}</b>스피커</span><span><b>${ICON.vidFill}</b>FaceTime</span><span><b>${ICON.micFill}</b>소리 끔</span>
-            <span><b>${ICON.plus}</b>통화 추가</span><span class="end"><b>${ICON.phone}</b>종료</span><span><b>⠿</b>키패드</span>
+            <span><b>${ICON.speaker}</b>${tr('스피커')}</span><span><b>${ICON.vidFill}</b>FaceTime</span><span><b>${ICON.micFill}</b>${tr('소리 끔')}</span>
+            <span><b>${ICON.plus}</b>${tr('통화 추가')}</span><span class="end"><b>${ICON.phone}</b>${tr('종료')}</span><span><b>⠿</b>${tr('키패드')}</span>
           </div>
         </div>`;
       stopTone = Sound.ringback();
@@ -1476,8 +1476,7 @@
   // 아이폰 문자 시간 구분: '오늘 오후 9:41'
   // 'now' → 지금 시각, '+60' 처럼 쓰면 지금부터 60분 뒤 (시간이 흐른 것처럼)
   function nowLabel(addMin = 0) {
-    const d = new Date(Date.now() + addMin * 60000), h = d.getHours();
-    return `오늘 ${h < 12 ? '오전' : '오후'} ${h % 12 || 12}:${pad2(d.getMinutes())}`;
+    return trNow(new Date(Date.now() + addMin * 60000));
   }
   function dateLabelText(l) { return l === 'now' ? nowLabel() : /^\+\d+$/.test(l) ? nowLabel(+l.slice(1)) : l; }
   function clockText() {
@@ -1487,8 +1486,7 @@
   }
   function dateText() {
     if (CFG.phone?.date) return CFG.phone.date;
-    const d = new Date();
-    return `${d.getMonth() + 1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`;
+    return trDate(new Date());
   }
   const updateClock = () => { const c = $('.sbar .clock'); if (c) c.textContent = clockText(); };
   updateClock();
@@ -1498,7 +1496,7 @@
   function showNarration(sc, opts = {}, id) {
     narr.hidden = false;
     narr.innerHTML = `<div class="lines"></div><div class="nsub-wrap"></div>
-      <div class="n-cta"><span class="ring"></span><span class="txt">화면을 탭해서 계속</span></div>`;
+      <div class="n-cta"><span class="ring"></span><span class="txt">${tr('화면을 탭해서 계속')}</span></div>`;
     const linesEl = $('.lines', narr), subWrap = $('.nsub-wrap', narr), cta = $('.n-cta', narr);
     let i = 0, typing = null, leaving = false, ctaT = null;
     const stopType = () => Sound.stopClicks();
@@ -1713,7 +1711,7 @@
     function step2() {
       if (over) return;
       setStep(2);
-      say('2단계 · 초에 불을 붙여주세요!', `불붙은 성냥을 끌어다 <b>심지에 ${HOLD / 1000}초간</b> 대고 있어요`);
+      say(tr('2단계 · 초에 불을 붙여주세요!'), tr('불붙은 성냥을 끌어다 <b>심지에 {0}초간</b> 대고 있어요', HOLD / 1000));
     }
 
     // ── ③ 불 끄기 (스위치 내리기)
@@ -1721,13 +1719,13 @@
     function step3() {
       if (over) return;
       setStep(3);
-      say('3단계 · 불을 꺼주세요!', '');   // 안내 문구·화살표 없이 (스위치만 보고 알아서 내리게)
+      say(tr('3단계 · 불을 꺼주세요!'), '');   // 안내 문구·화살표 없이 (스위치만 보고 알아서 내리게)
     }
     const lightsOff = () => {
       if (over) return;   // 시간 초과 뒤에는 성공 처리 안 함 (실패 → 성공 겹침 방지)
       step = 3.5; el.classList.add('off'); Sound.flick(); vibrate(30);
       finish(true);
-      later(() => { el.classList.add('dark'); big('준비 완료!', 'good'); }, 450);
+      later(() => { el.classList.add('dark'); big(tr('준비 완료!'), 'good'); }, 450);
     };
 
     // ── 입력
@@ -1766,7 +1764,7 @@
 
     // ── 시작
     setStep(1);
-    say('1단계 · 성냥에 불을 붙여주세요!', '성냥을 <b>빠르게 연타</b>해서 불을 붙여요!');
+    say(tr('1단계 · 성냥에 불을 붙여주세요!'), tr('성냥을 <b>빠르게 연타</b>해서 불을 붙여요!'));
     el.classList.add('wait');
     imgsReady.then(() => {
       if (my !== token) return;
@@ -1827,11 +1825,11 @@
           <div class="end-actions">
             ${v ? `<button class="voice-pill" data-act="voice">
                 <span class="vp-av">${vAvatar}</span>
-                <span class="vp-ic">${ICON.sound}</span>${esc(v.label || '남겨진 한마디')}
+                <span class="vp-ic">${ICON.sound}</span>${esc(v.label || tr('남겨진 한마디'))}
               </button>` : ''}
             <div class="end-btns">
-              <button class="btn" data-act="restart">${ICON.replay}다시 하기</button>
-              <button class="btn ghost" data-act="share">${ICON.share}이 엔딩 공유하기</button>
+              <button class="btn" data-act="restart">${ICON.replay}${tr('다시 하기')}</button>
+              <button class="btn ghost" data-act="share">${ICON.share}${tr('이 엔딩 공유하기')}</button>
             </div>
           </div>
           ${v ? `
@@ -1839,14 +1837,14 @@
             <div class="vc-person"><div class="vc-av">${vAvatar}</div><span>${esc(v.name)}</span></div>
             <div class="vc-bubble">
               <div class="vc-player">
-                <button class="vc-btn" data-act="replay" aria-label="다시 듣기"><i></i></button>
+                <button class="vc-btn" data-act="replay" aria-label="${tr('다시 듣기')}"><i></i></button>
                 <div class="wave">${bars}</div>
                 <span class="vc-dur">0:00</span>
               </div>
               <div class="vc-sub"></div>
             </div>
           </div>
-          <button class="vc-stop" data-act="stop"><b>»</b>그만 듣기</button>` : ''}
+          <button class="vc-stop" data-act="stop"><b>»</b>${tr('그만 듣기')}</button>` : ''}
         </div>
         <div class="credit">@fitohec</div>`;
       const card = $('.end-card', endingEl);
@@ -2000,7 +1998,7 @@
   function shareEnding(sc, id) {
     const got = ENDING_IDS.filter((e) => new Set(store.get(ENDINGS_KEY, [])).has(e)).length;
     const kind = sc.kind === 'good' ? '🎉 GOOD ENDING' : '😢 BAD ENDING';
-    const text = `${kind} : ${sc.title}\n현재까지 ${got}/${ENDING_IDS.length}개 엔딩 수집!\n\n라이즈와 함께 쇼타로의 생일파티 준비하기⬇️⬇️\n${CFG.shareTag ? CFG.shareTag + '\n' : ''}${SITE}/e/${id}.html`;   // 해시태그는 story.js config.shareTag
+    const text = `${kind} : ${sc.title}\n${tr('현재까지 {0}/{1}개 엔딩 수집!', got, ENDING_IDS.length)}\n\n${tr('라이즈와 함께 쇼타로의 생일파티 준비하기⬇️⬇️')}\n${CFG.shareTag ? CFG.shareTag + '\n' : ''}${SITE}/e/${id}.html`;   // 해시태그는 story.js config.shareTag
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
     const w = window.open(url, '_blank');
     if (!w) location.href = url;   // 새 창이 막히면(인앱 브라우저 등) 지금 창에서
@@ -2043,10 +2041,10 @@
   }
 
   // 루트에서 갈라지는 길: 선택지, 또는 연타 이벤트(성공/실패)
-  const routeOptions = (sc) => sc.choice ? [...sc.choice.options, ...(sc.choice.timeoutNext ? [{ text: '시간 초과', next: sc.choice.timeoutNext }] : [])]
-    : sc.type === 'mission' ? [{ text: '미션 성공', next: sc.success }, { text: '미션 실패', next: sc.fail }]
-    : sc.urgent ? [{ text: '답장 성공', next: sc.urgent.success }, { text: '답장 실패', next: sc.urgent.fail }]
-    : [{ text: '연타 성공', next: sc.mash.success }, { text: '연타 실패', next: sc.mash.fail }];
+  const routeOptions = (sc) => sc.choice ? [...sc.choice.options, ...(sc.choice.timeoutNext ? [{ text: tr('시간 초과'), next: sc.choice.timeoutNext }] : [])]
+    : sc.type === 'mission' ? [{ text: tr('미션 성공'), next: sc.success }, { text: tr('미션 실패'), next: sc.fail }]
+    : sc.urgent ? [{ text: tr('답장 성공'), next: sc.urgent.success }, { text: tr('답장 실패'), next: sc.urgent.fail }]
+    : [{ text: tr('연타 성공'), next: sc.mash.success }, { text: tr('연타 실패'), next: sc.mash.fail }];
 
   function routeGraph() {
     const nodes = [], edges = [], byKey = new Map();
@@ -2068,7 +2066,7 @@
             ? make(followRoute(o.next), depth + 1, key, `${key}#${i}`)
             : make({ kind: 'open' }, depth + 1, key, `${key}#${i}`);
           n.children.push(child);
-          edges.push({ from: n, to: child, label: o.text, scene: target.id, opt: i });
+          edges.push({ from: n, to: child, label: o.routeText || o.text, scene: target.id, opt: i });   // routeText: 루트 지도용 짧은 이름
         });
       }
       return n;
@@ -2186,7 +2184,7 @@
       if (n.kind === 'open') {
         const via = edges.find((e) => e.to === n);
         const got = via && taken(via);
-        return `<div class="r-node small ${got ? 'reached' : ''}" style="${style}"><i>${got ? '…' : '?'}</i><span>${got ? '준비 중' : ''}</span></div>`;
+        return `<div class="r-node small ${got ? 'reached' : ''}" style="${style}"><i>${got ? '…' : '?'}</i><span>${got ? tr('준비 중') : ''}</span></div>`;
       }
       const info = n.kind === 'start' ? CFG.routeStart || {} : sc.route || {};
       const title = n.kind === 'ending' ? sc.title : info.title || n.id;
@@ -2206,7 +2204,7 @@
     routeEl.innerHTML = `
       <div class="r-top">
         <div><div class="r-kicker">STORY ROUTE</div><h2>${esc(CFG.title)}</h2></div>
-        <div class="r-stats"><span>엔딩 <b>${gotEnd}/${ENDING_IDS.length}</b></span><span>선택지 <b>${gotOpts}/${totalOpts}</b></span></div>
+        <div class="r-stats"><span>${tr('엔딩')} <b>${gotEnd}/${ENDING_IDS.length}</b></span><span>${tr('선택지')} <b>${gotOpts}/${totalOpts}</b></span></div>
       </div>
       <div class="r-map"><div class="r-canvas" style="width:${W}cqw;height:${H}cqw">
         <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${paths}</svg>${chips}${cards}
@@ -2217,11 +2215,11 @@
         <button class="r-pan d" data-pan="d" aria-label="아래">›</button>
       </div>
       <div class="r-bottom">
-        <div class="r-progress"><span>진행도 <b>${pct}%</b></span><i><s style="width:${pct}%"></s></i></div>
-        <div class="r-hint">▶ 표시된 지점을 누르면 그 선택지부터 다시 할 수 있어요</div>
+        <div class="r-progress"><span>${tr('진행도')} <b>${pct}%</b></span><i><s style="width:${pct}%"></s></i></div>
+        <div class="r-hint">${tr('▶ 표시된 지점을 누르면 그 선택지부터 다시 할 수 있어요')}</div>
         <div class="rt-btns">
-          <button class="btn ghost" data-act="title">타이틀로</button>
-          <button class="btn" data-act="restart">처음부터</button>
+          <button class="btn ghost" data-act="title">${tr('타이틀로')}</button>
+          <button class="btn" data-act="restart">${tr('처음부터')}</button>
         </div>
       </div>
       <div class="credit">@fitohec</div>`;
@@ -2334,14 +2332,16 @@
         <h1 class="t-logo">${CFG.title}</h1>
         <div class="t-tag">${esc(CFG.tagline || '').replace(/\n/g, '<br>')}</div>
         <div class="t-menu">
-          <button class="btn" id="btn-start">▶ 시작하기</button>
-          ${Route.any() ? '<button class="btn ghost" id="btn-route">스토리 루트</button>' : ''}
+          <button class="t-langlink" id="btn-lang">${LANG === 'ko' ? 'Language · 言語 · 语言' : '🌐 ' + LANG_NAMES[LANG]}</button>
+          <button class="btn" id="btn-start">${tr('▶ 시작하기')}</button>
+          ${Route.any() ? `<button class="btn ghost" id="btn-route">${tr('스토리 루트')}</button>` : ''}
           <span class="t-count">ENDINGS ${got}/${ENDING_IDS.length}</span>
         </div>
       </div>
       <div class="t-right">${titleMedia()}</div>
       <div class="credit">@fitohec</div>`;
     $('#btn-start').onclick = start;
+    $('#btn-lang').onclick = openLangModal;
     const rb = $('#btn-route'); if (rb) rb.onclick = () => { Sound.unlock(); go('@route'); };
     Confetti.start($('.confetti', titleEl));
     // 첫 장면 영상 미리받기는 타이틀 영상이 나온 뒤에 (같이 받으면 타이틀 영상이 늦게 뜸)
@@ -2352,6 +2352,28 @@
     Dev.update('(title)');
   }
 
+  // 언어 선택 팝업 (AI 번역은 옵션) → 고르면 저장 후 새로고침
+  function openLangModal() {
+    const NOTE = {
+      en: 'Translated by AI — some lines may sound a little awkward.',
+      ja: 'AI翻訳のため、不自然な表現があるかもしれません。',
+      zh: '本内容由AI翻译，可能有不自然之处，敬请谅解。',
+    };
+    const m = document.createElement('div');
+    m.className = 'lang-modal';
+    m.innerHTML = `<div class="lm-box" role="dialog" aria-label="Language">
+        <p class="lm-note">AI 번역으로 이뤄져 있어 어색할 수 있는 점 참고하며 플레이 부탁드립니다.</p>
+        ${['en', 'ja', 'zh'].map((l) => `<button class="lm-opt ${LANG === l ? 'on' : ''}" data-l="${l}"><b>${LANG_NAMES[l]}</b><small>${NOTE[l]}</small></button>`).join('')}
+        <button class="lm-opt lm-ko ${LANG === 'ko' ? 'on' : ''}" data-l="ko"><b>한국어</b></button>
+        <button class="lm-x" aria-label="close">✕</button>
+      </div>`;
+    m.onclick = (e) => {
+      const o = e.target.closest('.lm-opt');
+      if (o) { if (o.dataset.l !== LANG) { setLang(o.dataset.l); location.reload(); } else m.remove(); return; }
+      if (e.target === m || e.target.closest('.lm-x')) m.remove();
+    };
+    document.body.append(m);
+  }
   function titleMedia() {
     const m = CFG.titleMedia;
     if (!m) return '<div class="ph-label">타이틀 이미지 / 영상 자리</div>';
