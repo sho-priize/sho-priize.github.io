@@ -1847,7 +1847,8 @@
             </div>
           </div>
           <button class="vc-stop" data-act="stop"><b>»</b>그만 듣기</button>` : ''}
-        </div>`;
+        </div>
+        <div class="credit">@fitohec</div>`;
       const card = $('.end-card', endingEl);
       // 굿 엔딩: 컨페티 / 배드 엔딩: 눈물이 뚝뚝
       const fx = keepFx || document.createElement(good ? 'canvas' : 'div');
@@ -2221,7 +2222,8 @@
           <button class="btn ghost" data-act="title">타이틀로</button>
           <button class="btn" data-act="restart">처음부터</button>
         </div>
-      </div>`;
+      </div>
+      <div class="credit">@fitohec</div>`;
 
     // 끌어서 지도 이동 (회전된 화면에서도 방향이 맞도록 직접 처리)
     const map = $('.r-map', routeEl), canvas = $('.r-canvas', routeEl);
@@ -2336,7 +2338,8 @@
           <span class="t-count">ENDINGS ${got}/${ENDING_IDS.length}</span>
         </div>
       </div>
-      <div class="t-right">${titleMedia()}</div>`;
+      <div class="t-right">${titleMedia()}</div>
+      <div class="credit">@fitohec</div>`;
     $('#btn-start').onclick = start;
     const rb = $('#btn-route'); if (rb) rb.onclick = () => { Sound.unlock(); go('@route'); };
     Confetti.start($('.confetti', titleEl));
