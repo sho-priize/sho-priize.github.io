@@ -835,7 +835,7 @@ window.STORY = {
       type: 'ending',
       title: '또하꾸마',
       route: { thumb: 'media/images/thumbs/e_bad_wonbin.jpg' },
-      desc: '좀 더 빠르게 원빈이를 말리는 게 좋겠다.',
+      desc: '좀 더 빠르게 원빈이를 말려보자.\n다시 하면 돼~',
       bg: ['#2a2a3a', '#06060c'],
       voice: {
         name: '쇼타로', avatar: 'media/images/voicephoto.jpg',
