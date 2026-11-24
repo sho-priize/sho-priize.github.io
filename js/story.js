@@ -473,6 +473,7 @@ window.STORY = {
     p_es_party2: {
       type: 'chat', thread: 'eunseok', title: '은석', icon: '은',
       route: { title: '계속 잡고 있어? 교대?', thumb: 'media/images/thumbs/p_es_party2.jpg' },
+      dateLabel: '+60',   // '쉽지ㅋㅋ' 뒤 시간이 흐른 것처럼 (지금 + 1시간)
       msgs: [
         ['은석', { video: 'media/clips/daldol1.mp4', thumb: 'media/images/daldol1.jpg' }],
         ['은석', { video: 'media/clips/daldol2.mp4', thumb: 'media/images/daldol2.jpg' }],
