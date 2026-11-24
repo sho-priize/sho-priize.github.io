@@ -68,7 +68,7 @@ window.STORY = {
     kicker: 'Happy birthday, ショウちゃん!',
     tagline: '라이즈와 함께 쇼타로의 생일파티를 준비하세요\n목표는 하나: 절대 들키지 말 것!',
     start: 'p_call1',
-    shareTag: '#타로생일_축하해야징_푸하',   // 엔딩 공유 트윗에 들어가는 해시태그 (바꾸려면 여기만)
+    shareTag: '#타로짱_내축하를_받아줘',   // 엔딩 공유 트윗에 들어가는 해시태그 (바꾸려면 여기만)
     titleMedia: 'media/clips/main.mp4',   // 타이틀 오른쪽 영상/이미지 (jpg·png도 가능)
     routeStart: { title: '시작', thumb: 'media/images/thumbs/start.jpg' },   // 루트 화면 첫 노드
     loopRate: 0.5,              // 선택지 대기 중 기본 재생 속도
